@@ -270,7 +270,7 @@ namespace gl {
         case GL_DEBUG_TYPE_MARKER:
             return "marker";
         case GL_DEBUG_TYPE_PUSH_GROUP:
-            "push group";
+            return "push group";
         case GL_DEBUG_TYPE_POP_GROUP:
             return "pop group";
         default:
