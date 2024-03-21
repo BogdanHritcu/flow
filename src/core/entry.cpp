@@ -1,7 +1,7 @@
 #include <memory>
 
-#include "../../include/flow/core/Application.hpp"
-#include "../../include/flow/core/Defines.hpp"
+#include "../../include/flow/core/application.hpp"
+#include "../../include/flow/core/defines.hpp"
 
 namespace flow {
 
