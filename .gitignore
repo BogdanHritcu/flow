@@ -1,0 +1,15 @@
+# Build
+[Bb]uild/
+[Bb]in/
+[Oo]bj/
+
+# Visual Studio
+.vs/
+*.sln
+*.sln.*
+*.vcxproj
+*.vcxproj.*
+
+# Visual Studio Code
+.vscode/
+.history/
