@@ -11,12 +11,7 @@ add_executable(sandbox)
 
 set(SANDBOX_SOURCES "src/entry.cpp")
 
-set(SANDBOX_HEADERS "src/chunk.hpp"
-                    "src/packed_chunk.hpp"
-                    "src/tile.hpp"
-                    "src/tilemap.hpp"
-                    "src/tests/batch_renderer/textured_quads_test.hpp"
-                    "src/tests/partitioner/allocation_test.hpp")
+set(SANDBOX_HEADERS "src/tests/batch_renderer/textured_quads_test.hpp")
 
 target_sources(sandbox PRIVATE ${SANDBOX_SOURCES})
 target_sources(sandbox PRIVATE FILE_SET HEADERS FILES ${SANDBOX_HEADERS})
