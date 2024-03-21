@@ -2,3 +2,7 @@
 	path = extern/glfw
 	url = https://github.com/BogdanHritcu/glfw.git
 	branch = flow_001
+[submodule "extern/glad"]
+	path = extern/glad
+	url = https://github.com/BogdanHritcu/glad.git
+	branch = flow_001
