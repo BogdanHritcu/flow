@@ -1,0 +1,4 @@
+[submodule "extern/glfw"]
+	path = extern/glfw
+	url = https://github.com/BogdanHritcu/glfw.git
+	branch = flow_001
