@@ -1,0 +1,47 @@
+#version 460 core
+
+struct State
+{
+    vec4 color;
+};
+
+struct InstanceState
+{
+    mat4 transform;
+    vec4 color;
+    vec2 texCoords[4];
+    vec2 origin;
+    float texLayer;
+};
+
+layout(std430, binding = 0) readonly buffer RendererState
+{
+    //State renderer;
+    InstanceState instances[];
+};
+
+layout (location = 0) in vec2 aPosition;
+
+out vec4 vColor;
+out vec2 vTexCoords;
+out float vTexLayer;
+
+void main()
+{
+    // 0 -> 000 -> (0, 1) // top left
+    // 1 -> 001 -> (0, 0) // bottom left
+    // 2 -> 010 -> (1, 0) // bottom right
+    // 3 -> 011 -> (1, 1) // top right
+    // ((vi & 010) >> 1, ~(((vi & 010) >> 1) ^ (vi & 001)))
+    // ((vi & 010) >> 1, 1 - (vi & 1))
+
+    uint vertexIndex = gl_VertexID % 4;
+
+    vec2 position = aPosition - instances[gl_InstanceID].origin;
+
+    gl_Position = instances[gl_InstanceID].transform * vec4(position, 0.0, 1.0);
+    // vColor = instances[gl_InstanceID].color * renderer.color;
+    vColor = instances[gl_InstanceID].color;
+    vTexCoords = instances[gl_InstanceID].texCoords[vertexIndex];
+    vTexLayer = instances[gl_InstanceID].texLayer;
+}
