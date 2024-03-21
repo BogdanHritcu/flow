@@ -6,3 +6,7 @@
 	path = extern/glad
 	url = https://github.com/BogdanHritcu/glad.git
 	branch = flow_001
+[submodule "extern/stb"]
+	path = extern/stb
+	url = https://github.com/BogdanHritcu/stb.git
+	branch = flow_001
