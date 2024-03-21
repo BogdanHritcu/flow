@@ -10,3 +10,7 @@
 	path = extern/stb
 	url = https://github.com/BogdanHritcu/stb.git
 	branch = flow_001
+[submodule "extern/glm"]
+	path = extern/glm
+	url = https://github.com/BogdanHritcu/glm.git
+	branch = flow_001
