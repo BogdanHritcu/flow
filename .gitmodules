@@ -14,3 +14,7 @@
 	path = extern/glm
 	url = https://github.com/BogdanHritcu/glm.git
 	branch = flow_001
+[submodule "extern/spdlog"]
+	path = extern/spdlog
+	url = https://github.com/BogdanHritcu/spdlog.git
+	branch = flow_001
