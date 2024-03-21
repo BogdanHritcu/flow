@@ -119,6 +119,10 @@ template<std::size_t N, typename T = double, std::size_t PermN = 2048>
     requires(N >= 1 && N <= 3)
 class open_simplex
 {
+private:
+    static constexpr std::array gradients = detail::generate_gradients<N, T, PermN>();
+    static constexpr glm::uint mask = static_cast<glm::uint>(PermN - 1);
+
 public:
     template<typename U>
     using point_type = glm::vec<N, U, glm::qualifier::packed_highp>;
@@ -133,8 +137,6 @@ public:
 
         std::iota(m_permutations.begin(), m_permutations.end(), 0);
         std::shuffle(m_permutations.begin(), m_permutations.end(), random_generator(seed));
-
-        static constexpr std::array gradients = detail::generate_gradients<N, T, PermN>();
 
         for (std::size_t i = 0; i < m_gradient_permutations.size(); ++i)
         {
@@ -182,8 +184,6 @@ public:
             {
                 continue;
             }
-
-            static constexpr glm::uint mask = static_cast<glm::uint>(PermN - 1);
 
             glm::uvec2 point_mask = glm::uvec2(static_cast<glm::uint>(point_base.x + lattice_point.sv.x) & mask,
                                                static_cast<glm::uint>(point_base.y + lattice_point.sv.y) & mask);
