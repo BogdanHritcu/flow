@@ -76,6 +76,12 @@ target_compile_definitions(flow PUBLIC "FLOW_ENABLE_LOG_CRITICAL"
                                        "FLOW_ENABLE_LOG_DEBUG"
                                        "FLOW_ENABLE_LOG_TRACE")
 
+target_compile_definitions(flow PUBLIC "$<$<PLATFORM_ID:Android>:FLOW_PLATFORM_ANDROID>"
+                                       "$<$<PLATFORM_ID:Darwin>:FLOW_PLATFORM_MACOS>"
+                                       "$<$<PLATFORM_ID:iOS>:FLOW_PLATFORM_IOS>"
+                                       "$<$<PLATFORM_ID:Linux>:FLOW_PLATFORM_LINUX>"
+                                       "$<$<PLATFORM_ID:Windows>:FLOW_PLATFORM_WINDOWS>")
+
 target_compile_options(flow PUBLIC "$<$<CXX_COMPILER_ID:MSVC>:/Zc:preprocessor>")
 
 source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES ${FLOW_SOURCES})

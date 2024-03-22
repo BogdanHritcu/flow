@@ -20,7 +20,7 @@ namespace detail {
 } // namespace detail
 } // namespace flow
 
-#if defined(FLOW_WINDOWS) && defined(FLOW_DIST)
+#if defined(FLOW_PLATFORM_WINDOWS) && defined(FLOW_RELEASE) && !defined(FLOW_DEBUG)
 #  include <windows.h>
 int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nShowCmd)
 {
