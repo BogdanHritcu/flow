@@ -2,6 +2,11 @@
 [Bb]uild/
 [Bb]in/
 [Oo]bj/
+[Oo]ut/
+[Dd]ebug/
+[Rr]elease/
+x86/
+x64/
 
 # Visual Studio
 .vs/
@@ -11,5 +16,11 @@
 *.vcxproj.*
 
 # Visual Studio Code
-.vscode/
+.vscode/*
 .history/
+
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
