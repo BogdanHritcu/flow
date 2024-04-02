@@ -19,8 +19,8 @@ class input
 {
 public:
     input()
-        : m_input_states{}
-        , m_contexts{}
+        : m_contexts{}
+        , m_input_states{}
         , m_pressed_keys_count{}
         , m_pressed_mouse_buttons_count{}
     {}
