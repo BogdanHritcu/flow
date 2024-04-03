@@ -7,6 +7,8 @@ if (NOT CMAKE_CXX_STANDARD)
     set(CMAKE_CXX_STANDARD_REQUIRED ON)
 endif()
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 option(FLOW_BUILD_SHARED "Build shared lib" OFF)
 option(FLOW_BUILD_SANDBOX "Build sandbox" OFF)
 

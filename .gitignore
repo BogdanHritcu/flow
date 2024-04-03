@@ -24,3 +24,6 @@ x64/
 !.vscode/launch.json
 !.vscode/extensions.json
 *.code-workspace
+
+# Other
+.cache/
