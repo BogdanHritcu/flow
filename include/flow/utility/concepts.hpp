@@ -12,6 +12,9 @@ namespace concepts {
     template<typename T, typename... Args>
     concept nothrow_constructible = std::is_nothrow_constructible_v<T, Args...>;
 
+    template<typename T>
+    concept trivially_copyable = std::is_trivially_copyable_v<T>;
+
     template<typename T, typename... Args>
     concept nothrow_invocable = std::is_nothrow_invocable_v<T, Args...>;
 
