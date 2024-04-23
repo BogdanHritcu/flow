@@ -61,6 +61,7 @@ set(FLOW_HEADERS "include/flow/core/action.hpp"
                  "include/flow/utility/random.hpp"
                  "include/flow/utility/time.hpp"
                  "include/flow/utility/unique_handle.hpp"
+                 "include/flow/utility/unit.hpp"
                  "include/flow/utility/uuid.hpp")
 
 target_sources(flow PRIVATE ${FLOW_SOURCES})
