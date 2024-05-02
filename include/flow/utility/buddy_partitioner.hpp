@@ -200,6 +200,16 @@ public:
         m_freelists[free_level].push_back(block_index);
     }
 
+    [[nodiscard]] constexpr std::span<const block_type> blocks() const noexcept
+    {
+        return m_blocks;
+    }
+
+    [[nodiscard]] constexpr std::span<const std::vector<size_type>> freelists() const noexcept
+    {
+        return m_freelists;
+    }
+
     [[nodiscard]] constexpr size_type block_size() const noexcept
     {
         return m_block_size;
