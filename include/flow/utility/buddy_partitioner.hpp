@@ -10,11 +10,12 @@
 
 namespace flow {
 
+template<typename BlockT, typename SizeT = std::size_t>
 class buddy_partitioner
 {
 public:
-    using size_type = std::size_t;
-    using block_type = std::size_t;
+    using block_type = BlockT;
+    using size_type = SizeT;
 
 private:
     static constexpr size_type level_bit_count = 8;
