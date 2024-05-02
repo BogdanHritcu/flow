@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <bit>
+#include <concepts>
 #include <cstddef>
 #include <optional>
 #include <span>
@@ -12,7 +13,7 @@
 
 namespace flow {
 
-template<typename BlockT, typename SizeT = std::size_t>
+template<std::integral BlockT, std::integral SizeT = std::size_t>
 class buddy_partitioner
 {
 public:
