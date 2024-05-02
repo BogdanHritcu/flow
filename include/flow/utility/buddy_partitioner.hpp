@@ -243,7 +243,7 @@ private:
         return block & max_level_mask;
     }
 
-    [[nodiscard]] static constexpr void swap_block_indices(block_type& lhs, block_type& rhs) noexcept
+    static constexpr void swap_block_indices(block_type& lhs, block_type& rhs) noexcept
     {
         const size_type lindex = get_block_index(lhs);
         const size_type rindex = get_block_index(rhs);
