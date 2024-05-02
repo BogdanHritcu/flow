@@ -1,8 +1,10 @@
 #pragma once
 
+#include <algorithm>
 #include <bit>
 #include <cstddef>
 #include <optional>
+#include <span>
 #include <vector>
 
 #include "../core/assertion.hpp"
@@ -40,19 +42,49 @@ public:
 
     constexpr size_type create(size_type block_count, size_type block_size, size_type base_offset = 0)
     {
+        size_type pow2_block_count = std::bit_floor(block_count);
+
+        if (pow2_block_count == 0)
+        {
+            return 0;
+        }
+
         m_block_size = block_size;
         m_base_offset = base_offset;
 
-        size_type pow2_block_count = std::bit_floor(block_count);
+        size_type levels = fast_log2(pow2_block_count) + 1;
+        m_blocks.resize(pow2_block_count, make_block(nullindex, 0));
+        m_freelists.resize(levels);
 
-        if (pow2_block_count != 0)
+        m_blocks[0] = make_block(0, levels - 1);
+        m_freelists.back().push_back(0);
+
+        return pow2_block_count;
+    }
+
+    constexpr size_type create(std::span<block_type> blocks,
+                               std::span<std::span<size_type>> freelists,
+                               size_type block_size,
+                               size_type base_offset = 0)
+    {
+        size_type pow2_block_count = std::bit_floor(blocks.size());
+
+        if (pow2_block_count != blocks.size())
         {
-            size_type levels = fast_log2(pow2_block_count) + 1;
-            m_blocks.resize(pow2_block_count, make_block(nullindex, 0));
-            m_freelists.resize(levels);
+            return 0;
+        }
 
-            m_blocks[0] = make_block(0, levels - 1);
-            m_freelists.back().push_back(0);
+        m_block_size = block_size;
+        m_base_offset = base_offset;
+
+        m_blocks.resize(blocks.size());
+        m_freelists.resize(freelists.size());
+
+        std::copy(blocks.begin(), blocks.end(), m_blocks.begin());
+
+        for (std::size_t level = 0; level < m_freelists.size(); ++level)
+        {
+            std::copy(freelists[level].begin(), freelists[level].end(), m_freelists[level].begin());
         }
 
         return pow2_block_count;
