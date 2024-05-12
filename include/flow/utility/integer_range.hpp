@@ -16,6 +16,11 @@ struct basic_integer_range
     T start;
     T end;
 
+    [[nodiscard]] constexpr std::size_t size() const noexcept
+    {
+        return is_valid() ? (end - !E) - (start + !S) + 1 : 0;
+    }
+
     [[nodiscard]] constexpr bool is_valid() const noexcept
     {
         return start <= std::numeric_limits<T>::max() - !S
