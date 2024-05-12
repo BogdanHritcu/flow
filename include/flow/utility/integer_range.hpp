@@ -32,22 +32,19 @@ struct basic_integer_range
 };
 
 template<std::integral T>
-using basic_ii_integer_range = basic_integer_range<T, true, true>;
+using ii_integer_range = basic_integer_range<T, true, true>;
 
 template<std::integral T>
-using basic_ei_integer_range = basic_integer_range<T, false, true>;
+using ei_integer_range = basic_integer_range<T, false, true>;
 
 template<std::integral T>
-using basic_ie_integer_range = basic_integer_range<T, true, false>;
+using ie_integer_range = basic_integer_range<T, true, false>;
 
 template<std::integral T>
-using basic_ee_integer_range = basic_integer_range<T, false, false>;
+using ee_integer_range = basic_integer_range<T, false, false>;
 
-using ii_integer_range = basic_ii_integer_range<std::int32_t>;
-using ei_integer_range = basic_ei_integer_range<std::int32_t>;
-using ie_integer_range = basic_ie_integer_range<std::int32_t>;
-using ee_integer_range = basic_ee_integer_range<std::int32_t>;
-using integer_range = ii_integer_range;
+template<std::integral T>
+using integer_range = ii_integer_range<T>;
 
 template<std::integral T, bool ST, bool ET, std::integral U, bool SU, bool EU>
 [[nodiscard]] constexpr decltype(auto) integer_range_intersection(basic_integer_range<T, ST, ET> rt,
