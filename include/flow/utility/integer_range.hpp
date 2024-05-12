@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <concepts>
+#include <limits>
 #include <optional>
 #include <type_traits>
 
@@ -17,7 +18,9 @@ struct basic_integer_range
 
     [[nodiscard]] constexpr bool is_valid() const noexcept
     {
-        return start + !S <= end - !E;
+        return start <= std::numeric_limits<T>::max() - !S
+            && end >= std::numeric_limits<T>::min() + !E
+            && start + !S <= end - !E;
     }
 
     [[nodiscard]] constexpr bool is_start_inclusive() const noexcept
@@ -28,6 +31,11 @@ struct basic_integer_range
     [[nodiscard]] constexpr bool is_end_inclusive() const noexcept
     {
         return E;
+    }
+
+    [[nodiscard]] constexpr operator bool() const noexcept
+    {
+        return is_valid();
     }
 };
 
