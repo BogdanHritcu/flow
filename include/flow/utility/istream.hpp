@@ -13,13 +13,14 @@ class istream_view
 {
 public:
     istream_view(std::istream& in)
-        : m_in{ in }
+        : m_in{ &in }
     {}
 
     template<concepts::trivially_copyable T>
     istream_view& read(T& data)
     {
-        m_in.read(reinterpret_cast<char*>(&data), sizeof(data));
+        // NOLINTNEXTLINE(*-reinterpret-cast)
+        m_in->read(reinterpret_cast<char*>(&data), sizeof(data));
 
         return *this;
     }
@@ -27,8 +28,9 @@ public:
     template<concepts::trivially_copyable_range R>
     istream_view& read(R& range)
     {
-        m_in.read(reinterpret_cast<char*>(std::ranges::data(range)),
-                  std::ranges::size(range) * sizeof(std::ranges::range_value_t<R>));
+        // NOLINTNEXTLINE(*-reinterpret-cast)
+        m_in->read(reinterpret_cast<char*>(std::ranges::data(range)),
+                   std::ranges::size(range) * sizeof(std::ranges::range_value_t<R>));
 
         return *this;
     }
@@ -48,7 +50,7 @@ public:
     }
 
 private:
-    std::istream& m_in;
+    std::istream* m_in;
 };
 
 template<concepts::trivially_copyable T>

@@ -13,13 +13,14 @@ class ostream_view
 {
 public:
     ostream_view(std::ostream& out)
-        : m_out{ out }
+        : m_out{ &out }
     {}
 
     template<concepts::trivially_copyable T>
     ostream_view& write(const T& data)
     {
-        m_out.write(reinterpret_cast<const char*>(&data), sizeof(data));
+        // NOLINTNEXTLINE(*-reinterpret-cast)
+        m_out->write(reinterpret_cast<const char*>(&data), sizeof(data));
 
         return *this;
     }
@@ -27,8 +28,9 @@ public:
     template<concepts::trivially_copyable_range R>
     ostream_view& write(const R& range)
     {
-        m_out.write(reinterpret_cast<const char*>(std::ranges::cdata(range)),
-                    std::ranges::size(range) * sizeof(std::ranges::range_value_t<R>));
+        // NOLINTNEXTLINE(*-reinterpret-cast)
+        m_out->write(reinterpret_cast<const char*>(std::ranges::cdata(range)),
+                     std::ranges::size(range) * sizeof(std::ranges::range_value_t<R>));
 
         return *this;
     }
@@ -48,7 +50,7 @@ public:
     }
 
 private:
-    std::ostream& m_out;
+    std::ostream* m_out;
 };
 
 template<concepts::trivially_copyable T>
