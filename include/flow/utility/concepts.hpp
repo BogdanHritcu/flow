@@ -20,6 +20,10 @@ namespace concepts {
     concept trivially_copyable_range = std::ranges::contiguous_range<T>
                                     && trivially_copyable<std::ranges::range_value_t<T>>;
 
+    template<typename T>
+    concept resizable_range = std::ranges::sized_range<T>
+                           && requires(T& t) { t.resize(std::ranges::size(t)); };
+
     template<typename T, typename... Args>
     concept nothrow_invocable = std::is_nothrow_invocable_v<T, Args...>;
 

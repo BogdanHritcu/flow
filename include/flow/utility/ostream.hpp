@@ -5,17 +5,9 @@
 #include <ranges>
 
 #include "concepts.hpp"
-#include "traits.hpp"
+#include "serialization.hpp"
 
 namespace flow {
-
-class ostream_view;
-
-template<typename T>
-struct serializer
-{
-    void operator()(ostream_view& out, const T& data) const = delete;
-};
 
 class ostream_view
 {
@@ -24,8 +16,25 @@ public:
         : m_out{ out }
     {}
 
-    template<typename T, std::invocable<make_lval_ref_t<ostream_view>, make_const_lval_ref_t<T>> SerializerT>
-    ostream_view& write(const T& data, SerializerT serializer)
+    template<concepts::trivially_copyable T>
+    ostream_view& write(const T& data)
+    {
+        m_out.write(reinterpret_cast<const char*>(&data), sizeof(data));
+
+        return *this;
+    }
+
+    template<concepts::trivially_copyable_range R>
+    ostream_view& write(const R& range)
+    {
+        m_out.write(reinterpret_cast<const char*>(std::ranges::cdata(range)),
+                    std::ranges::size(range) * sizeof(std::ranges::range_value_t<R>));
+
+        return *this;
+    }
+
+    template<typename T, concepts::serializer SerializerT>
+    ostream_view& serialize(const T& data, SerializerT serializer)
     {
         std::invoke(serializer, *this, data);
 
@@ -33,14 +42,9 @@ public:
     }
 
     template<typename T>
-    ostream_view& write(const T& data)
+    ostream_view& serialize(const T& data)
     {
-        return write(data, serializer<T>{});
-    }
-
-    [[nodiscard]] std::ostream& get() noexcept
-    {
-        return m_out;
+        return serialize(data, serializer<T>{});
     }
 
 private:
@@ -50,30 +54,33 @@ private:
 template<concepts::trivially_copyable T>
 struct serializer<T>
 {
-    void operator()(ostream_view& out, const T& value) const
+    void operator()(ostream_view& out, const T& data) const
     {
-        out.get().write(reinterpret_cast<const char*>(&value), sizeof(value));
+        out.write(data);
     }
 };
 
-template<concepts::trivially_copyable_range R>
+template<std::ranges::sized_range R>
 struct serializer<R>
 {
     void operator()(ostream_view& out, const R& range) const
     {
-        out.get().write(reinterpret_cast<const char*>(std::ranges::cdata(range)),
-                        std::ranges::size(range) * sizeof(std::ranges::range_value_t<R>));
-    }
-};
+        using traits = serialization_traits<R>;
 
-template<std::ranges::range R>
-struct serializer<R>
-{
-    void operator()(ostream_view& out, const R& range) const
-    {
-        for (const auto& e : range | std::views::all)
+        const auto size = static_cast<traits::size_type>(std::ranges::size(range));
+
+        out.write(size);
+
+        if constexpr (concepts::trivially_copyable_range<R>)
         {
-            out.write(e);
+            out.write(range | std::views::take(size));
+        }
+        else
+        {
+            for (const auto& e : range | std::views::take(size))
+            {
+                out.serialize(e);
+            }
         }
     }
 };

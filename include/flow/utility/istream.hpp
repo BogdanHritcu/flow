@@ -5,17 +5,9 @@
 #include <ranges>
 
 #include "concepts.hpp"
-#include "traits.hpp"
+#include "serialization.hpp"
 
 namespace flow {
-
-class istream_view;
-
-template<typename T>
-struct deserializer
-{
-    void operator()(istream_view& in, T& data) const = delete;
-};
 
 class istream_view
 {
@@ -24,9 +16,25 @@ public:
         : m_in{ in }
     {}
 
-    template<typename T,
-             std::invocable<make_lval_ref_t<istream_view>, make_lval_ref_t<T>> DeserializerT>
-    istream_view& read(T& data, DeserializerT deserializer)
+    template<concepts::trivially_copyable T>
+    istream_view& read(T& data)
+    {
+        m_in.read(reinterpret_cast<char*>(&data), sizeof(data));
+
+        return *this;
+    }
+
+    template<concepts::trivially_copyable_range R>
+    istream_view& read(R& range)
+    {
+        m_in.read(reinterpret_cast<char*>(std::ranges::data(range)),
+                  std::ranges::size(range) * sizeof(std::ranges::range_value_t<R>));
+
+        return *this;
+    }
+
+    template<typename T, concepts::deserializer DeserializerT>
+    istream_view& deserialize(T& data, DeserializerT deserializer)
     {
         std::invoke(deserializer, *this, data);
 
@@ -34,14 +42,9 @@ public:
     }
 
     template<typename T>
-    istream_view& read(T& data)
+    istream_view& deserialize(T& data)
     {
-        return read(data, deserializer<T>{});
-    }
-
-    [[nodiscard]] std::istream& get() noexcept
-    {
-        return m_in;
+        return deserialize(data, deserializer<T>{});
     }
 
 private:
@@ -51,30 +54,35 @@ private:
 template<concepts::trivially_copyable T>
 struct deserializer<T>
 {
-    void operator()(istream_view& in, T& value) const
+    void operator()(istream_view& in, T& data) const
     {
-        in.get().read(reinterpret_cast<char*>(&value), sizeof(value));
+        in.read(data);
     }
 };
 
-template<concepts::trivially_copyable_range R>
+template<concepts::resizable_range R>
 struct deserializer<R>
 {
     void operator()(istream_view& in, R& range) const
     {
-        in.get().read(reinterpret_cast<char*>(std::ranges::data(range)),
-                      std::ranges::size(range) * sizeof(std::ranges::range_value_t<R>));
-    }
-};
+        using traits = serialization_traits<R>;
 
-template<std::ranges::range R>
-struct deserializer<R>
-{
-    void operator()(istream_view& in, R& range) const
-    {
-        for (auto& e : range | std::views::all)
+        typename traits::size_type size{};
+
+        in.read(size);
+
+        range.resize(size);
+
+        if constexpr (concepts::trivially_copyable_range<R>)
         {
-            in.read(e);
+            in.read(range);
+        }
+        else
+        {
+            for (auto& e : range)
+            {
+                in.deserialize(e);
+            }
         }
     }
 };
