@@ -13,3 +13,5 @@ CheckOptions:
     value: true
   - key: cppcoreguidelines-avoid-magic-numbers.IgnorePowersOf2IntegerValues
     value: true
+  - key: misc-non-private-member-variables-in-classes.IgnoreClassesWithAllMemberVariablesBeingPublic
+    value: true
