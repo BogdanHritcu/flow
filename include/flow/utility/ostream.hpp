@@ -35,7 +35,7 @@ public:
         return *this;
     }
 
-    template<typename T, concepts::serializer SerializerT>
+    template<typename T, concepts::serializer<T> SerializerT>
     ostream_view& serialize(const T& data, SerializerT serializer)
     {
         std::invoke(serializer, *this, data);

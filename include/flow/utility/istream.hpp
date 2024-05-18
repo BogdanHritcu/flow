@@ -35,7 +35,7 @@ public:
         return *this;
     }
 
-    template<typename T, concepts::deserializer DeserializerT>
+    template<typename T, concepts::deserializer<T> DeserializerT>
     istream_view& deserialize(T& data, DeserializerT deserializer)
     {
         std::invoke(deserializer, *this, data);
