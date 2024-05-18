@@ -65,6 +65,7 @@ set(FLOW_HEADERS "include/flow/core/action.hpp"
                  "include/flow/utility/serialization.hpp"
                  "include/flow/utility/time.hpp"
                  "include/flow/utility/traits.hpp"
+                 "include/flow/utility/flat_tree.hpp"
                  "include/flow/utility/unique_handle.hpp"
                  "include/flow/utility/unit.hpp"
                  "include/flow/utility/uuid.hpp")
