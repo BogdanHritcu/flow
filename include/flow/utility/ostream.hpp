@@ -16,7 +16,7 @@ public:
         : m_out{ &out }
     {}
 
-    template<concepts::trivially_copyable T>
+    template<concepts::trivially_copyable_non_range T>
     ostream_view& write(const T& data)
     {
         // NOLINTNEXTLINE(*-reinterpret-cast)
@@ -25,7 +25,7 @@ public:
         return *this;
     }
 
-    template<concepts::trivially_copyable_range R>
+    template<concepts::trivially_copyable_range_data R>
     ostream_view& write(const R& range)
     {
         // NOLINTNEXTLINE(*-reinterpret-cast)
@@ -43,18 +43,18 @@ public:
         return *this;
     }
 
-    template<typename T>
+    template<typename T, typename Traits = serialization_traits<T>>
     ostream_view& serialize(const T& data)
     {
-        return serialize(data, serializer<T>{});
+        return serialize(data, serializer<T, Traits>{});
     }
 
 private:
     std::ostream* m_out;
 };
 
-template<concepts::trivially_copyable T>
-struct serializer<T>
+template<concepts::trivially_copyable_non_range T, typename Traits>
+struct serializer<T, Traits>
 {
     void operator()(ostream_view& out, const T& data) const
     {
@@ -62,18 +62,18 @@ struct serializer<T>
     }
 };
 
-template<std::ranges::sized_range R>
-struct serializer<R>
+template<std::ranges::sized_range R, typename Traits>
+struct serializer<R, Traits>
 {
     void operator()(ostream_view& out, const R& range) const
     {
-        using traits = serialization_traits<R>;
+        using size_type = typename Traits::size_type;
 
-        const auto size = static_cast<traits::size_type>(std::ranges::size(range));
+        const auto size = static_cast<size_type>(std::ranges::size(range));
 
         out.write(size);
 
-        if constexpr (concepts::trivially_copyable_range<R>)
+        if constexpr (concepts::trivially_copyable_range_data<R>)
         {
             out.write(range | std::views::take(size));
         }

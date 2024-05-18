@@ -16,9 +16,16 @@ template<typename T>
 concept trivially_copyable = std::is_trivially_copyable_v<T>;
 
 template<typename T>
-concept trivially_copyable_range = !trivially_copyable<T>
-                                && std::ranges::contiguous_range<T>
-                                && trivially_copyable<std::ranges::range_value_t<T>>;
+concept trivially_copyable_range = trivially_copyable<T>
+                                && std::ranges::range<T>;
+
+template<typename T>
+concept trivially_copyable_non_range = trivially_copyable<T>
+                                    && !std::ranges::range<T>;
+
+template<typename T>
+concept trivially_copyable_range_data = std::ranges::contiguous_range<T>
+                                     && trivially_copyable<std::ranges::range_value_t<T>>;
 
 template<typename T>
 concept resizable_range = std::ranges::sized_range<T>

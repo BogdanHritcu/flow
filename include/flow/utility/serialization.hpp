@@ -29,13 +29,13 @@ struct serialization_traits<R>
     using size_type = std::ranges::range_size_t<R>;
 };
 
-template<typename T>
+template<typename T, typename Traits = serialization_traits<T>>
 struct serializer
 {
     void operator()(ostream_view& out, const T& data) const = delete;
 };
 
-template<typename T>
+template<typename T, typename Traits = serialization_traits<T>>
 struct deserializer
 {
     void operator()(istream_view& in, T& data) const = delete;

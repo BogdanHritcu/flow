@@ -16,7 +16,7 @@ public:
         : m_in{ &in }
     {}
 
-    template<concepts::trivially_copyable T>
+    template<concepts::trivially_copyable_non_range T>
     istream_view& read(T& data)
     {
         // NOLINTNEXTLINE(*-reinterpret-cast)
@@ -25,7 +25,7 @@ public:
         return *this;
     }
 
-    template<concepts::trivially_copyable_range R>
+    template<concepts::trivially_copyable_range_data R>
     istream_view& read(R& range)
     {
         // NOLINTNEXTLINE(*-reinterpret-cast)
@@ -43,18 +43,18 @@ public:
         return *this;
     }
 
-    template<typename T>
+    template<typename T, typename Traits = serialization_traits<T>>
     istream_view& deserialize(T& data)
     {
-        return deserialize(data, deserializer<T>{});
+        return deserialize(data, deserializer<T, Traits>{});
     }
 
 private:
     std::istream* m_in;
 };
 
-template<concepts::trivially_copyable T>
-struct deserializer<T>
+template<concepts::trivially_copyable_non_range T, typename Traits>
+struct deserializer<T, Traits>
 {
     void operator()(istream_view& in, T& data) const
     {
@@ -62,20 +62,19 @@ struct deserializer<T>
     }
 };
 
-template<concepts::resizable_range R>
-struct deserializer<R>
+template<concepts::resizable_range R, typename Traits>
+struct deserializer<R, Traits>
 {
     void operator()(istream_view& in, R& range) const
     {
-        using traits = serialization_traits<R>;
-
-        typename traits::size_type size{};
+        using size_type = typename Traits::size_type;
+        size_type size{};
 
         in.read(size);
 
         range.resize(size);
 
-        if constexpr (concepts::trivially_copyable_range<R>)
+        if constexpr (concepts::trivially_copyable_range_data<R>)
         {
             in.read(range);
         }
