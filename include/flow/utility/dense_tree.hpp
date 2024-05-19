@@ -242,13 +242,14 @@ template<typename DataT, std::unsigned_integral IndexT>
 struct serializer<dense_tree<DataT, IndexT>>
 {
     using node_type = typename dense_tree<DataT, IndexT>::node_type;
-    using traits_type = serialization_traits<dense_tree<DataT, IndexT>>;
+    using traits = serialization_traits<dense_tree<DataT, IndexT>>;
 
     void operator()(ostream_view& out, const dense_tree<DataT, IndexT>& t) const
     {
         if constexpr (concepts::trivially_copyable<node_type>)
         {
-            out.serialize<decltype(t.node_slots()), traits_type>(t.node_slots());
+            using nodes_container_type = decltype(t.node_slots());
+            out.serialize<nodes_container_type, traits>(t.node_slots());
         }
         else
         {
@@ -266,7 +267,8 @@ struct serializer<dense_tree<DataT, IndexT>>
             }
         }
 
-        out.serialize<decltype(t.free_slot_indices()), traits_type>(t.free_slot_indices());
+        using indices_container_type = decltype(t.free_slot_indices());
+        out.serialize<indices_container_type, traits>(t.free_slot_indices());
     }
 };
 
@@ -274,13 +276,14 @@ template<typename DataT, std::unsigned_integral IndexT>
 struct deserializer<dense_tree<DataT, IndexT>>
 {
     using node_type = typename dense_tree<DataT, IndexT>::node_type;
-    using traits_type = serialization_traits<dense_tree<DataT, IndexT>>;
+    using traits = serialization_traits<dense_tree<DataT, IndexT>>;
 
     void operator()(istream_view& in, dense_tree<DataT, IndexT>& t) const
     {
         if constexpr (concepts::trivially_copyable<node_type>)
         {
-            in.deserialize<decltype(t.node_slots()), traits_type>(t.node_slots());
+            using nodes_container_type = decltype(t.node_slots());
+            in.deserialize<nodes_container_type, traits>(t.node_slots());
         }
         else
         {
@@ -300,7 +303,8 @@ struct deserializer<dense_tree<DataT, IndexT>>
             }
         }
 
-        in.deserialize<decltype(t.free_slot_indices()), traits_type>(t.free_slot_indices());
+        using indices_container_type = decltype(t.free_slot_indices());
+        in.deserialize<indices_container_type, traits>(t.free_slot_indices());
     }
 };
 

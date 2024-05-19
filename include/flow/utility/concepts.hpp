@@ -16,21 +16,44 @@ template<typename T>
 concept trivially_copyable = std::is_trivially_copyable_v<T>;
 
 template<typename T>
-concept trivially_copyable_range = trivially_copyable<T>
-                                && std::ranges::range<T>;
+concept trivially_copyable_range = std::ranges::range<T>
+                                && trivially_copyable<T>;
+
+template<typename T>
+concept non_trivially_copyable_range = !trivially_copyable<T>
+                                    && std::ranges::range<T>;
 
 template<typename T>
 concept trivially_copyable_non_range = trivially_copyable<T>
                                     && !std::ranges::range<T>;
 
 template<typename T>
-concept trivially_copyable_range_data = std::ranges::contiguous_range<T>
+concept trivially_copyable_data_range = std::ranges::contiguous_range<T>
                                      && trivially_copyable<std::ranges::range_value_t<T>>;
 
 template<typename T>
-concept resizable_range = std::ranges::sized_range<T>
-                       && requires(T& t) { t.resize(std::ranges::size(t)); };
+concept non_trivially_copyable_data_range = std::ranges::range<T>
+                                         && !trivially_copyable_data_range<T>;
 
+template<typename T>
+concept resizable_range = std::ranges::sized_range<T>
+                       && requires(T& t) { t.resize(std::ranges::range_size_t<T>{}); };
+
+template<typename T>
+concept trivially_copyable_data_sized_range = trivially_copyable_data_range<T>
+                                           && std::ranges::sized_range<T>;
+
+template<typename T>
+concept non_trivially_copyable_data_sized_range = non_trivially_copyable_data_range<T>
+                                               && std::ranges::sized_range<T>;
+
+template<typename T>
+concept trivially_copyable_data_resizable_range = trivially_copyable_data_range<T>
+                                               && resizable_range<T>;
+
+template<typename T>
+concept non_trivially_copyable_data_resizable_range = non_trivially_copyable_data_range<T>
+                                                   && resizable_range<T>;
 template<typename T, typename... Args>
 concept nothrow_invocable = std::is_nothrow_invocable_v<T, Args...>;
 

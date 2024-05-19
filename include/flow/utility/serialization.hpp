@@ -9,16 +9,6 @@ namespace flow {
 class istream_view;
 class ostream_view;
 
-namespace concepts {
-
-    template<typename F, typename T>
-    concept serializer = std::invocable<F, make_lval_ref_t<ostream_view>, make_const_lval_ref_t<T>>;
-
-    template<typename F, typename T>
-    concept deserializer = std::invocable<F, make_lval_ref_t<istream_view>, make_lval_ref_t<T>>;
-
-} // namespace concepts
-
 template<typename T>
 struct serialization_traits
 {};
@@ -31,14 +21,38 @@ struct serialization_traits<R>
 
 template<typename T, typename Traits = serialization_traits<T>>
 struct serializer
-{
-    void operator()(ostream_view& out, const T& data) const = delete;
-};
+{};
 
 template<typename T, typename Traits = serialization_traits<T>>
 struct deserializer
-{
-    void operator()(istream_view& in, T& data) const = delete;
-};
+{};
+
+namespace concepts {
+
+    template<typename F, typename T>
+    concept serializer = std::invocable<F,
+                                        make_lval_ref_t<ostream_view>,
+                                        make_const_lval_ref_t<T>>;
+
+    template<typename F, typename T>
+    concept limited_serializer = requires { typename T::size_type; }
+                              && std::invocable<F,
+                                                make_lval_ref_t<ostream_view>,
+                                                make_const_lval_ref_t<T>,
+                                                typename T::size_type>;
+
+    template<typename F, typename T>
+    concept deserializer = std::invocable<F,
+                                          make_lval_ref_t<istream_view>,
+                                          make_lval_ref_t<T>>;
+
+    template<typename F, typename T>
+    concept limited_deserializer = requires { typename T::size_type; }
+                                && std::invocable<F,
+                                                  make_lval_ref_t<istream_view>,
+                                                  make_lval_ref_t<T>,
+                                                  typename T::size_type>;
+
+} // namespace concepts
 
 } // namespace flow

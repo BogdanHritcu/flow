@@ -2,7 +2,7 @@
 
 #include <functional>
 #include <istream>
-#include <ranges>
+#include <span>
 
 #include "concepts.hpp"
 #include "serialization.hpp"
@@ -16,7 +16,7 @@ public:
         : m_in{ &in }
     {}
 
-    template<concepts::trivially_copyable_non_range T>
+    template<concepts::trivially_copyable T>
     istream_view& read(T& data)
     {
         // NOLINTNEXTLINE(*-reinterpret-cast)
@@ -25,12 +25,11 @@ public:
         return *this;
     }
 
-    template<concepts::trivially_copyable_range_data R>
-    istream_view& read(R& range)
+    template<concepts::trivially_copyable T>
+    istream_view& read(std::span<T> span)
     {
         // NOLINTNEXTLINE(*-reinterpret-cast)
-        m_in->read(reinterpret_cast<char*>(std::ranges::data(range)),
-                   std::ranges::size(range) * sizeof(std::ranges::range_value_t<R>));
+        m_in->read(reinterpret_cast<char*>(span.data()), span.size_bytes());
 
         return *this;
     }
@@ -53,7 +52,7 @@ private:
     std::istream* m_in;
 };
 
-template<concepts::trivially_copyable_non_range T, typename Traits>
+template<concepts::trivially_copyable T, typename Traits>
 struct deserializer<T, Traits>
 {
     void operator()(istream_view& in, T& data) const
@@ -62,28 +61,37 @@ struct deserializer<T, Traits>
     }
 };
 
-template<concepts::resizable_range R, typename Traits>
+template<concepts::trivially_copyable_data_resizable_range R, typename Traits>
+    requires(!concepts::trivially_copyable<R>)
 struct deserializer<R, Traits>
 {
+    using size_type = typename Traits::size_type;
+
     void operator()(istream_view& in, R& range) const
     {
-        using size_type = typename Traits::size_type;
         size_type size{};
+        in.read(size);
 
+        range.resize(size);
+        in.read(std::span{ range });
+    }
+};
+
+template<concepts::non_trivially_copyable_data_resizable_range R, typename Traits>
+struct deserializer<R, Traits>
+{
+    using size_type = typename Traits::size_type;
+
+    void operator()(istream_view& in, R& range) const
+    {
+        size_type size{};
         in.read(size);
 
         range.resize(size);
 
-        if constexpr (concepts::trivially_copyable_range_data<R>)
+        for (auto& e : range)
         {
-            in.read(range);
-        }
-        else
-        {
-            for (auto& e : range)
-            {
-                in.deserialize(e);
-            }
+            in.deserialize(e);
         }
     }
 };
