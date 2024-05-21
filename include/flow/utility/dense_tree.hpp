@@ -168,6 +168,32 @@ public:
             return;
         }
 
+        // remove the reference of the parent to the erased node
+        auto parent_index = m_node_slots[node_index].indices.parent;
+        if (is_node(parent_index))
+        {
+            auto child_index = m_node_slots[parent_index].indices.first_child;
+            auto prev_child_index = nullindex;
+
+            while (is_node(child_index) && child_index != node_index)
+            {
+                prev_child_index = child_index;
+                child_index = m_node_slots[child_index].indices.next_sibling;
+            }
+
+            if (prev_child_index == nullindex)
+            {
+                m_node_slots[parent_index].indices.first_child = m_node_slots[node_index].indices.next_sibling;
+            }
+            else
+            {
+                if (is_node(prev_child_index))
+                {
+                    m_node_slots[prev_child_index].indices.next_sibling = m_node_slots[node_index].indices.next_sibling;
+                }
+            }
+        }
+
         // simulate a queue by using the already
         // available vector of free indices
         auto queue_start = m_free_slot_indices.size();
@@ -201,7 +227,8 @@ public:
         }
     }
 
-    [[nodiscard]] constexpr bool is_node(index_type node_index) const noexcept
+    [[nodiscard]] constexpr bool
+    is_node(index_type node_index) const noexcept
     {
         return node_index < m_node_slots.size()
             && node_is_valid(m_node_slots[node_index], node_index == 0);
