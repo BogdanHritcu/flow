@@ -1,7 +1,9 @@
 #pragma once
 
 #include <concepts>
+#include <cstddef>
 #include <limits>
+#include <type_traits>
 #include <vector>
 
 #include "concepts.hpp"
@@ -11,15 +13,225 @@
 
 namespace flow {
 
-template<typename DataT, std::unsigned_integral IndexT>
+namespace detail {
+
+    template<typename TreeT>
+    class const_dfs_iterator;
+
+    template<typename TreeT>
+    class dfs_iterator
+    {
+    private:
+        using tree_type = TreeT;
+        using index_type = typename tree_type::index_type;
+
+    public:
+        using iterator_category = std::forward_iterator_tag;
+        using value_type = typename tree_type::value_type;
+        using difference_type = typename tree_type::difference_type;
+        using pointer = value_type*;
+        using reference = value_type&;
+
+    public:
+        constexpr dfs_iterator(tree_type* tree_ptr, index_type index) noexcept
+            : m_tree_ptr{ tree_ptr }
+            , m_index{ index }
+        {}
+
+        constexpr dfs_iterator& operator++() noexcept
+        {
+            const tree_type& tree = *m_tree_ptr;
+
+            if (m_index == tree_type::before_begin_index)
+            {
+                m_index = tree.m_root_index;
+                return *this;
+            }
+
+            if (tree.has_children(m_index))
+            {
+                m_index = tree.first_child_index_of(m_index);
+            }
+            else if (tree.has_siblings(m_index))
+            {
+                m_index = tree.next_sibling_index_of(m_index);
+            }
+            else
+            {
+                index_type parent_index = tree.parent_index_of(m_index);
+                while (parent_index != tree_type::before_begin_index && !tree.has_siblings(parent_index))
+                {
+                    parent_index = tree.parent_index_of(parent_index);
+                }
+
+                if (tree.has_siblings(parent_index))
+                {
+                    m_index = tree.next_sibling_index_of(parent_index);
+                }
+                else
+                {
+                    m_index = tree_type::end_index;
+                }
+            }
+
+            return *this;
+        }
+
+        constexpr dfs_iterator operator++(int) noexcept
+        {
+            auto tmp = *this;
+            ++(*this);
+            return tmp;
+        }
+
+        [[nodiscard]] friend constexpr bool operator==(const dfs_iterator&, const dfs_iterator&) noexcept = default;
+
+        [[nodiscard]] constexpr operator bool() const noexcept(noexcept(m_tree_ptr->is_node(m_index)))
+        {
+            return m_tree_ptr->is_node(m_index);
+        }
+
+        [[nodiscard]] constexpr reference operator*() noexcept
+        {
+            return m_tree_ptr->node_slots()[m_index].value;
+        }
+
+        [[nodiscard]] constexpr reference operator*() const noexcept
+        {
+            return m_tree_ptr->node_slots()[m_index].value;
+        }
+
+        [[nodiscard]] constexpr pointer operator->() noexcept
+        {
+            return &m_tree_ptr->node_slots()[m_index].value;
+        }
+
+        [[nodiscard]] constexpr const pointer operator->() const noexcept
+        {
+            return &m_tree_ptr->node_slots()[m_index].value;
+        }
+
+        [[nodiscard]] constexpr index_type index() const noexcept
+        {
+            return m_index;
+        }
+
+    private:
+        tree_type* m_tree_ptr;
+        index_type m_index;
+
+        friend class const_dfs_iterator<const tree_type>;
+    };
+
+    template<typename TreeT>
+    class const_dfs_iterator
+    {
+    private:
+        using tree_type = TreeT;
+        using index_type = typename tree_type::index_type;
+
+    public:
+        using iterator_category = std::forward_iterator_tag;
+        using value_type = typename tree_type::value_type;
+        using difference_type = typename tree_type::difference_type;
+        using pointer = const value_type*;
+        using reference = const value_type&;
+
+    public:
+        constexpr const_dfs_iterator(tree_type* tree_ptr, index_type index) noexcept
+            : m_tree_ptr{ tree_ptr }
+            , m_index{ index }
+        {}
+
+        constexpr const_dfs_iterator(const dfs_iterator<std::remove_const_t<tree_type>>& other) noexcept
+            : m_tree_ptr{ other.m_tree_ptr }
+            , m_index{ other.m_index }
+        {}
+
+        constexpr const_dfs_iterator& operator++() noexcept
+        {
+            const tree_type& tree = *m_tree_ptr;
+
+            if (m_index == tree_type::before_begin_index)
+            {
+                m_index = tree.m_root_index;
+                return *this;
+            }
+
+            if (tree.has_children(m_index))
+            {
+                m_index = tree.first_child_index_of(m_index);
+            }
+            else if (tree.has_siblings(m_index))
+            {
+                m_index = tree.next_sibling_index_of(m_index);
+            }
+            else
+            {
+                index_type parent_index = tree.parent_index_of(m_index);
+                while (parent_index != tree_type::before_begin_index && !tree.has_siblings(parent_index))
+                {
+                    parent_index = tree.parent_index_of(parent_index);
+                }
+
+                if (tree.has_siblings(parent_index))
+                {
+                    m_index = tree.next_sibling_index_of(parent_index);
+                }
+                else
+                {
+                    m_index = tree_type::end_index;
+                }
+            }
+
+            return *this;
+        }
+
+        constexpr const_dfs_iterator operator++(int) noexcept
+        {
+            auto tmp = *this;
+            ++(*this);
+            return tmp;
+        }
+
+        [[nodiscard]] friend constexpr bool operator==(const const_dfs_iterator&, const const_dfs_iterator&) noexcept = default;
+
+        [[nodiscard]] constexpr operator bool() const noexcept(noexcept(m_tree_ptr->is_node(m_index)))
+        {
+            return m_tree_ptr->is_node(m_index);
+        }
+
+        [[nodiscard]] constexpr reference operator*() const noexcept
+        {
+            return m_tree_ptr->node_slots()[m_index].value;
+        }
+
+        [[nodiscard]] constexpr pointer operator->() const noexcept
+        {
+            return &m_tree_ptr->node_slots()[m_index].value;
+        }
+
+        [[nodiscard]] constexpr index_type index() const noexcept
+        {
+            return m_index;
+        }
+
+    private:
+        tree_type* m_tree_ptr;
+        index_type m_index;
+    };
+
+} // namespace detail
+
+template<typename T, std::unsigned_integral IndexT>
 class dense_tree
 {
 public:
-    using data_type = DataT;
+    using value_type = T;
+    using difference_type = std::ptrdiff_t;
     using index_type = IndexT;
 
-    static constexpr auto nullindex = std::numeric_limits<index_type>::max();
-
+private:
     struct node_indices
     {
         index_type parent;
@@ -27,171 +239,153 @@ public:
         index_type next_sibling;
     };
 
-private:
-    struct node_data_first
+    struct node_value_first
     {
-        data_type data;
+        value_type value;
         node_indices indices;
     };
 
-    struct node_data_last
+    struct node_value_last
     {
         node_indices indices;
-        data_type data;
+        value_type value;
     };
+
+    static constexpr index_type before_begin_index = std::numeric_limits<index_type>::max() - 1;
+    static constexpr index_type end_index = std::numeric_limits<index_type>::max();
 
 public:
-    using node_type = min_size_t<node_data_first, node_data_last>;
-
-    [[nodiscard]] static constexpr bool node_is_valid(const node_type& node, bool is_root) noexcept
-    {
-        return (is_root && node.indices.parent == nullindex && node.indices.next_sibling == nullindex)
-            || (!is_root && node.indices.parent != nullindex);
-    }
-
-    static constexpr void node_invalidate(node_type& node) noexcept
-    {
-        // root node can't have non null index as sibling
-        // other nodes can't have null index as parent
-        node.indices.next_sibling = ~nullindex;
-        node.indices.parent = nullindex;
-    }
-
-    // clang-format off
-
-    template<typename... Args>
-    static constexpr node_type make_node(index_type parent_index,
-                                         index_type first_child_index,
-                                         index_type next_sibling_index,
-                                         Args&&... args)
-        noexcept(noexcept(std::is_nothrow_constructible_v<data_type, Args...>))
-    {
-        if constexpr (std::same_as<node_type, node_data_first>)
-        {
-            return node_type{
-                .data = { std::forward<Args>(args)... },
-                .indices = {
-                    .parent = parent_index,
-                    .first_child = first_child_index,
-                    .next_sibling = next_sibling_index }
-            };
-        }
-        else
-        {
-            return node_type{
-                .indices = {
-                    .parent = parent_index,
-                    .first_child = first_child_index,
-                    .next_sibling = next_sibling_index },
-                .data = { std::forward<Args>(args)... }
-            };
-        }
-    }
-
-    // clang-format on
-
-    // clang-format off
-
-    template<typename... Args>
-    static constexpr node_type make_node(index_type parent_index, Args&&... args)
-        noexcept(noexcept(std::is_nothrow_constructible_v<data_type, Args...>))
-    {
-        return make_node(parent_index,
-                         nullindex,
-                         nullindex,
-                         std::forward<Args>(args)...);
-    }
-
-    // clang-format on
+    using node_type = min_size_t<node_value_first, node_value_last>;
+    using iterator = detail::dfs_iterator<dense_tree>;
+    using const_iterator = detail::const_dfs_iterator<const dense_tree>;
 
 public:
     constexpr dense_tree() noexcept
-        : m_node_slots{}
+        : m_root_index{ end_index }
+        , m_node_slots{}
         , m_free_slot_indices{}
     {}
 
-    constexpr dense_tree(const data_type& data)
-        : m_node_slots{ make_node(nullindex, data) }
-        , m_free_slot_indices{}
-    {}
-
-    constexpr void set_root(const data_type& data)
+    [[nodiscard]] constexpr iterator before_begin() noexcept
     {
-        if (is_node(0))
-        {
-            m_node_slots[0].data = data;
-        }
-        else
-        {
-            m_node_slots.push_back(make_node(nullindex, data));
-        }
+        return { this, before_begin_index };
     }
 
-    constexpr void insert(index_type parent_index, const data_type& data)
+    [[nodiscard]] constexpr const_iterator before_begin() const noexcept
     {
-        if (!is_node(parent_index))
+        return { this, before_begin_index };
+    }
+
+    [[nodiscard]] constexpr const_iterator cbefore_begin() const noexcept
+    {
+        return { this, before_begin_index };
+    }
+
+    [[nodiscard]] constexpr iterator begin() noexcept
+    {
+        return { this, m_root_index };
+    }
+
+    [[nodiscard]] constexpr const_iterator begin() const noexcept
+    {
+        return { this, m_root_index };
+    }
+
+    [[nodiscard]] constexpr const_iterator cbegin() const noexcept
+    {
+        return { this, m_root_index };
+    }
+
+    [[nodiscard]] constexpr iterator end() noexcept
+    {
+        return { this, end_index };
+    }
+
+    [[nodiscard]] constexpr const_iterator end() const noexcept
+    {
+        return { this, end_index };
+    }
+
+    [[nodiscard]] constexpr const_iterator cend() const noexcept
+    {
+        return { this, end_index };
+    }
+
+    constexpr iterator insert_after(const_iterator it, const value_type& value)
+    {
+        const bool is_before_begin_it = it == before_begin();
+
+        if (!(is_before_begin_it || is_node(it)))
         {
-            return;
+            return end();
         }
 
-        if (m_free_slot_indices.size() > 0)
+        // find a free slot
+        index_type index{ end_index };
+        while (m_free_slot_indices.size() > 0)
         {
-            const index_type child_index = m_free_slot_indices.back();
+            index = m_free_slot_indices.back();
             m_free_slot_indices.pop_back();
 
-            if (child_index < m_node_slots.size()
-                && !node_is_valid(m_node_slots[child_index], child_index == 0))
+            if (!is_node(index))
             {
-                m_node_slots[child_index] = make_node(parent_index,
-                                                      nullindex,
-                                                      m_node_slots[parent_index].indices.first_child,
-                                                      data);
-
-                m_node_slots[parent_index].indices.first_child = child_index;
-
-                return;
+                break;
             }
         }
 
-        m_node_slots.push_back(make_node(parent_index,
-                                         nullindex,
-                                         m_node_slots[parent_index].indices.first_child,
-                                         data));
-
-        m_node_slots[parent_index].indices.first_child = static_cast<index_type>(m_node_slots.size() - 1);
-    }
-
-    constexpr void erase(index_type node_index)
-    {
-        if (!is_node(node_index))
+        if (is_before_begin_it)
         {
-            return;
-        }
-
-        // remove the reference of the parent to the erased node
-        auto parent_index = m_node_slots[node_index].indices.parent;
-        if (is_node(parent_index))
-        {
-            auto child_index = m_node_slots[parent_index].indices.first_child;
-            auto prev_child_index = nullindex;
-
-            while (is_node(child_index) && child_index != node_index)
+            if (index < m_node_slots.size())
             {
-                prev_child_index = child_index;
-                child_index = m_node_slots[child_index].indices.next_sibling;
-            }
-
-            if (prev_child_index == nullindex)
-            {
-                m_node_slots[parent_index].indices.first_child = m_node_slots[node_index].indices.next_sibling;
+                m_node_slots[index] = make_node(before_begin_index,
+                                                m_root_index,
+                                                end_index,
+                                                value);
             }
             else
             {
-                if (is_node(prev_child_index))
-                {
-                    m_node_slots[prev_child_index].indices.next_sibling = m_node_slots[node_index].indices.next_sibling;
-                }
+                m_node_slots.push_back(make_node(before_begin_index,
+                                                 m_root_index,
+                                                 end_index,
+                                                 value));
+
+                index = static_cast<index_type>(m_node_slots.size() - 1);
             }
+
+            m_root_index = index;
+        }
+        else
+        {
+            if (index < m_node_slots.size())
+            {
+                m_node_slots[index] = make_node(it.index(),
+                                                end_index,
+                                                first_child_index_of(it.index()),
+                                                value);
+            }
+            else
+            {
+                m_node_slots.push_back(make_node(it.index(),
+                                                 end_index,
+                                                 first_child_index_of(it.index()),
+                                                 value));
+
+                index = static_cast<index_type>(m_node_slots.size() - 1);
+            }
+
+            node_at(it.index()).indices.first_child = index;
+        }
+
+        return iterator(this, index);
+    }
+
+    constexpr iterator erase_after(const_iterator it)
+    {
+        const bool is_before_begin_it = it == before_begin();
+
+        if (!(is_before_begin_it || is_node(it)))
+        {
+            return end();
         }
 
         // simulate a queue by using the already
@@ -205,33 +399,103 @@ public:
         auto queue_size = [&]() { return queue_end - queue_start; };
         // clang-format on
 
-        queue_push(node_index);
+        auto temp_it = it;
+
+        if (is_node(++temp_it))
+        {
+            queue_push(temp_it.index());
+        }
 
         while (queue_size() > 0)
         {
-            auto current_node_index = queue_pop();
+            index_type current_node_index = queue_pop();
 
-            // no need to check if the node was visited, because
+            // no need to check if the node is valid, because
             // we do it before pushing them in the queue
             // a node that is invalid corresponds to a visited node
 
-            auto child_index = m_node_slots[current_node_index].indices.first_child;
-
+            index_type child_index = first_child_index_of(current_node_index);
             while (is_node(child_index))
             {
                 queue_push(child_index);
-                child_index = m_node_slots[child_index].indices.next_sibling;
+                child_index = next_sibling_index_of(child_index);
             }
 
-            node_invalidate(m_node_slots[current_node_index]);
+            invalidate_node(node_at(current_node_index));
+        }
+
+        if (is_before_begin_it)
+        {
+            m_root_index = end_index;
+            return end();
+        }
+        else
+        {
+            auto& node = node_at(first_child_index_of(it.index()));
+            node.indices.first_child = end_index;
+
+            return iterator(this, node.indices.next_sibling);
         }
     }
 
-    [[nodiscard]] constexpr bool
-    is_node(index_type node_index) const noexcept
+    [[nodiscard]] constexpr node_type& node_at(const_iterator it) noexcept
     {
-        return node_index < m_node_slots.size()
-            && node_is_valid(m_node_slots[node_index], node_index == 0);
+        return m_node_slots[it.index()];
+    }
+
+    [[nodiscard]] constexpr const node_type& node_at(const_iterator it) const noexcept
+    {
+        return m_node_slots[it.index()];
+    }
+
+    [[nodiscard]] constexpr iterator parent_of(const_iterator it) noexcept
+    {
+        return iterator(*this, parent_index_of(it.index()));
+    }
+
+    [[nodiscard]] constexpr const_iterator parent_of(const_iterator it) const noexcept
+    {
+        return const_iterator(*this, parent_index_of(it.index()));
+    }
+
+    [[nodiscard]] constexpr iterator first_child_of(const_iterator it) noexcept
+    {
+        return iterator(*this, first_child_index_of(it.index()));
+    }
+
+    [[nodiscard]] constexpr const_iterator first_child_of(const_iterator it) const noexcept
+    {
+        return const_iterator(*this, first_child_index_of(it.index()));
+    }
+
+    [[nodiscard]] constexpr iterator next_sibling_of(const_iterator it) noexcept
+    {
+        return iterator(this, next_sibling_index_of(it.index()));
+    }
+
+    [[nodiscard]] constexpr const_iterator next_sibling_of(const_iterator it) const noexcept
+    {
+        return const_iterator(this, next_sibling_index_of(it.index()));
+    }
+
+    [[nodiscard]] constexpr bool has_parent(const_iterator it) const noexcept
+    {
+        return has_parent(it.index());
+    }
+
+    [[nodiscard]] constexpr bool has_children(const_iterator it) const noexcept
+    {
+        return has_children(it.index());
+    }
+
+    [[nodiscard]] constexpr bool has_siblings(const_iterator it) const noexcept
+    {
+        return has_siblings(it.index());
+    }
+
+    [[nodiscard]] constexpr bool is_node(const_iterator it) const noexcept
+    {
+        return is_node(it.index());
     }
 
     [[nodiscard]] constexpr std::vector<node_type>& node_slots() noexcept
@@ -255,8 +519,132 @@ public:
     }
 
 private:
+    [[nodiscard]] constexpr node_type& node_at(index_type index) noexcept
+    {
+        return m_node_slots[index];
+    }
+
+    [[nodiscard]] constexpr const node_type& node_at(index_type index) const noexcept
+    {
+        return m_node_slots[index];
+    }
+
+    [[nodiscard]] constexpr index_type parent_index_of(index_type index) const noexcept
+    {
+        return m_node_slots[index].indices.parent;
+    }
+
+    [[nodiscard]] constexpr index_type first_child_index_of(index_type index) const noexcept
+    {
+        return m_node_slots[index].indices.first_child;
+    }
+
+    [[nodiscard]] constexpr index_type next_sibling_index_of(index_type index) const noexcept
+    {
+        return m_node_slots[index].indices.next_sibling;
+    }
+
+    [[nodiscard]] constexpr bool has_parent(index_type index) const noexcept
+    {
+        return index < m_node_slots.size() && is_node(m_node_slots[index].indices.parent);
+    }
+
+    [[nodiscard]] constexpr bool has_children(index_type index) const noexcept
+    {
+        return (index < m_node_slots.size() && is_node(m_node_slots[index].indices.first_child))
+            || (index == before_begin_index && is_node(m_root_index));
+    }
+
+    [[nodiscard]] constexpr bool has_siblings(index_type index) const noexcept
+    {
+        return index < m_node_slots.size() && is_node(m_node_slots[index].indices.next_sibling);
+    }
+
+    [[nodiscard]] constexpr bool is_node(index_type index) const noexcept
+    {
+        return index < m_node_slots.size()
+            && ((index != m_root_index && is_valid_non_root(m_node_slots[index]))
+                || (index == m_root_index && is_valid_root(m_node_slots[index])));
+    }
+
+    [[nodiscard]] static constexpr bool is_valid_root(const node_type& node) noexcept
+    {
+        return node.indices.parent == before_begin_index
+            && node.indices.first_child != before_begin_index
+            && node.indices.next_sibling == end_index;
+    }
+
+    [[nodiscard]] static constexpr bool is_valid_non_root(const node_type& node) noexcept
+    {
+        return node.indices.parent != before_begin_index
+            && node.indices.parent != end_index
+            && node.indices.first_child != before_begin_index
+            && node.indices.next_sibling != before_begin_index;
+    }
+
+    static constexpr void invalidate_node(node_type& node) noexcept
+    {
+        node.indices.parent = end_index;
+        node.indices.first_child = before_begin_index;
+        node.indices.next_sibling = before_begin_index;
+    }
+
+    // clang-format off
+
+    template<typename... Args>
+    [[nodiscard]] static constexpr node_type make_node(index_type parent_index,
+                                                       index_type first_child_index,
+                                                       index_type next_sibling_index,
+                                                       Args&&... args)
+        noexcept(noexcept(std::is_nothrow_constructible_v<value_type, Args...>))
+    {
+        if constexpr (std::same_as<node_type, node_value_first>)
+        {
+            return node_type{
+                .value = { std::forward<Args>(args)... },
+                .indices = {
+                    .parent = parent_index,
+                    .first_child = first_child_index,
+                    .next_sibling = next_sibling_index }
+            };
+        }
+        else
+        {
+            return node_type{
+                .indices = {
+                    .parent = parent_index,
+                    .first_child = first_child_index,
+                    .next_sibling = next_sibling_index },
+                .value = { std::forward<Args>(args)... }
+            };
+        }
+    }
+
+    // clang-format on
+
+    // clang-format off
+
+    template<typename... Args>
+    [[nodiscard]] static constexpr node_type make_node(index_type parent_index, Args&&... args)
+        noexcept(noexcept(make_node(parent_index,
+                                    end_index,
+                                    end_index,
+                                    std::forward<Args>(args)...)))
+    {
+        return make_node(parent_index,
+                         end_index,
+                         end_index,
+                         std::forward<Args>(args)...);
+    }
+
+    // clang-format on
+private:
+    index_type m_root_index;
     std::vector<node_type> m_node_slots;
     std::vector<index_type> m_free_slot_indices;
+
+    friend class detail::dfs_iterator<dense_tree>;
+    friend class detail::const_dfs_iterator<const dense_tree>;
 };
 
 template<typename DataT, std::unsigned_integral IndexT>
@@ -288,7 +676,7 @@ struct serializer<dense_tree<DataT, IndexT>>
                 out.serialize(node,
                               [](ostream_view& out, const node_type& n)
                               {
-                                  out.serialize(n.data)
+                                  out.serialize(n.value)
                                       .serialize(n.indices);
                               });
             }
@@ -324,7 +712,7 @@ struct deserializer<dense_tree<DataT, IndexT>>
                 in.deserialize(node,
                                [](istream_view& in, node_type& n)
                                {
-                                   in.deserialize(n.data)
+                                   in.deserialize(n.value)
                                        .deserialize(n.indices);
                                });
             }
