@@ -70,6 +70,8 @@ set(FLOW_HEADERS "include/flow/core/action.hpp"
                  "include/flow/utility/unit.hpp"
                  "include/flow/utility/uuid.hpp")
 
+set(FLOW_DATA_DIR "${CMAKE_CURRENT_SOURCE_DIR}/data")
+
 target_sources(flow PRIVATE ${FLOW_SOURCES})
 target_sources(flow PUBLIC FILE_SET HEADERS FILES ${FLOW_HEADERS})
 
