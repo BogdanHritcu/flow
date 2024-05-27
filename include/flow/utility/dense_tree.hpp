@@ -37,6 +37,11 @@ namespace detail {
         using const_reference = std::add_const_t<value_type>&;
 
     public:
+        constexpr dfs_iterator() noexcept
+            : m_tree_ptr{ nullptr }
+            , m_index{ tree_type::end_index }
+        {}
+
         constexpr dfs_iterator(tree_type* tree_ptr, index_type index) noexcept
             : m_tree_ptr{ tree_ptr }
             , m_index{ index }
@@ -44,6 +49,11 @@ namespace detail {
 
         constexpr dfs_iterator& operator++() noexcept
         {
+            if (m_tree_ptr == nullptr)
+            {
+                return *this;
+            }
+
             const tree_type& tree = *m_tree_ptr;
 
             if (m_index == tree_type::before_begin_index)
@@ -92,7 +102,7 @@ namespace detail {
 
         [[nodiscard]] constexpr operator bool() const noexcept(noexcept(m_tree_ptr->is_node(m_index)))
         {
-            return m_tree_ptr->is_node(m_index);
+            return m_tree_ptr && m_tree_ptr->is_node(m_index);
         }
 
         template<std::same_as<std::add_const_t<tree_type>> TreeU>
