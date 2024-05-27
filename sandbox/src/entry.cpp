@@ -2,13 +2,14 @@
 
 #include <memory>
 
-#include "tests/batch_renderer/textured_quads_test.hpp"
+// #include "tests/textured_quads_test.hpp"
+#include "tests/input_context_test.hpp"
 
 namespace flow {
 
-std::unique_ptr<application> entry(int argc, char** argv)
+std::unique_ptr<application> entry(int /*argc*/, char** /*argv*/)
 {
-    return std::make_unique<texture_quad_test>();
+    return std::make_unique<input_context_test>();
 }
 
 } // namespace flow

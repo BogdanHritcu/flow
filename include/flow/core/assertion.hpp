@@ -11,6 +11,7 @@
 #    define FLOW_DEBUG_BREAK __builtin_trap
 #  endif
 
+// NOLINTBEGIN
 #  define FLOW_ASSERT(expression, message, ...)                                          \
       do                                                                                 \
       {                                                                                  \
@@ -27,6 +28,7 @@
           }                                                                              \
       }                                                                                  \
       while (0)
+// NOLINTEND
 #else
 #  define FLOW_ASSERT(expression, message, ...) (void)0
 #endif

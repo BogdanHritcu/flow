@@ -1,63 +1,69 @@
 #pragma once
 
-#include <entt/container/dense_map.hpp>
-#include <entt/container/dense_set.hpp>
+#include <optional>
+#include <unordered_map>
 
-#include "../core/action.hpp"
 #include "input_binding.hpp"
-#include "input_event.hpp"
 
 namespace flow {
 
+template<typename CallbackT, typename IndexT>
 class input_context
 {
 public:
-    template<typename K, typename V>
-    using map_type = entt::dense_map<K, V>;
-    template<typename T>
-    using set_type = entt::dense_set<T>;
-
-    enum class blocking_mode
-    {
-        on_action,
-        always,
-        never
-    };
-
-public:
-    input_context();
-
-    void set_active(bool value = true) noexcept;
-    void set_blocking_mode(blocking_mode mode) noexcept;
-    void set_callback(const action& action, const input_event_callback_type& callback);
-    void add_binding(const action& action, const input_binding& binding);
-    void remove_binding(const action& action, const input_binding& binding);
-    void change_binding(const action& action, const input_binding& old_binding, const input_binding& new_binding);
-
-    [[nodiscard]] const input_event_callback_type& get_callback(const action& action);
-    [[nodiscard]] const set_type<input_binding>& get_bindings(const action& action);
-    [[nodiscard]] const set_type<action>& get_actions(const input_binding& binding);
-    [[nodiscard]] bool is_active() const noexcept;
-    [[nodiscard]] blocking_mode get_blocking_mode() const noexcept;
+    using callback_type = CallbackT;
+    using index_type = IndexT;
 
 private:
-    bool handle(const input_event& event);
-    bool handle(const input_event& event, const set_type<action>& actions);
+    using callback_index_map_type = std::unordered_map<input_binding, index_type>;
 
-    template<typename... Args>
-    bool handle_any(const input_event& event)
+public:
+    [[nodiscard]] constexpr bool has_binding(input_binding bind) const
     {
-        return handle(event, m_actions[{ input_code::any<Args...>{}, event.binding.mod, event.binding.action }]);
+        return m_callback_index_map.contains(bind);
+    }
+
+    constexpr void remove_binding(input_binding bind)
+    {
+        auto it = m_callback_index_map.find(bind);
+
+        if (it == m_callback_index_map.end())
+        {
+            return;
+        }
+
+        m_callback_index_map.erase(bind);
+    }
+
+    constexpr void set_callback_index(input_binding bind, index_type index)
+    {
+        m_callback_index_map[bind] = index;
+    }
+
+    [[nodiscard]] constexpr std::optional<index_type> get_callback_index(input_binding bind) const
+    {
+        auto it = m_callback_index_map.find(bind);
+
+        return (it != m_callback_index_map.end() ? std::make_optional(it->second) : std::nullopt);
+    }
+
+    [[nodiscard]] constexpr std::vector<input_binding> get_bindings(index_type callback_index) const
+    {
+        std::vector<input_binding> bindings{};
+
+        for (const auto& [bind, index] : m_callback_index_map)
+        {
+            if (index == callback_index)
+            {
+                bindings.emplace_back(bind);
+            }
+        }
+
+        return bindings;
     }
 
 private:
-    map_type<action, input_event_callback_type> m_callbacks;
-    map_type<action, set_type<input_binding>> m_bindings;
-    map_type<input_binding, set_type<action>> m_actions;
-    bool m_active;
-    blocking_mode m_blocking_mode;
-
-    friend class application;
+    callback_index_map_type m_callback_index_map{};
 };
 
 } // namespace flow

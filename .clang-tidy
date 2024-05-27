@@ -15,3 +15,5 @@ CheckOptions:
     value: true
   - key: misc-non-private-member-variables-in-classes.IgnoreClassesWithAllMemberVariablesBeingPublic
     value: true
+  - key: bugprone-easily-swappable-parameters.MinimumLength
+    value: 3

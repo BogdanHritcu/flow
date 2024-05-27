@@ -1,7 +1,6 @@
 #pragma once
 
 #include <array>
-#include <cmath>
 #include <filesystem>
 
 #include <glm/gtc/matrix_transform.hpp>
@@ -31,12 +30,31 @@ private:
     {
         glm::aligned_mat4 transform;
         glm::aligned_vec4 color;
-        glm::aligned_vec2 tex_coords[4];
+        std::array<glm::aligned_vec2, 4> tex_coords;
         glm::aligned_vec2 origin;
         float tex_layer;
     };
 
 public:
+    void setup() final
+    {
+        // setup window
+
+        for (auto str = glGetString(GL_VERSION); str && *str != '\0'; ++str)
+        {
+            m_state.gl_version.push_back(static_cast<char>(*str));
+        }
+
+        for (auto str = glGetString(GL_SHADING_LANGUAGE_VERSION); str && *str != '\0'; ++str)
+        {
+            m_state.gl_shading_version.push_back(static_cast<char>(*str));
+        }
+
+        set_window_size(static_cast<std::size_t>(m_state.width), static_cast<std::size_t>(m_state.height));
+        set_window_title(std::format("{} {} ({:.2f}fps {:.6f}s)", m_state.gl_version, m_state.gl_shading_version, 0.0, 0.0));
+        set_window_vsync(false);
+    }
+
     void start() final
     {
         namespace fs = std::filesystem;
@@ -66,16 +84,16 @@ public:
 
         // load shaders
 
-        flow::gl::shader_config shaders[] = {
+        auto shaders = std::to_array<flow::gl::shader_config>({
             {
-                .path = "data/shaders/default_shader.vrt",
+                .path = "data/flow/shaders/default_shader.vrt",
                 .type = flow::gl::shader_type::vertex,
             },
             {
-                .path = "data/shaders/default_shader.frg",
+                .path = "data/flow/shaders/default_shader.frg",
                 .type = flow::gl::shader_type::fragment,
             },
-        };
+        });
 
         if (!(m_shader.create() && m_shader.link(shaders)))
         {
@@ -84,28 +102,24 @@ public:
 
         // setup renderer
 
-        glm::vec2 positions[] = {
-            { 0.0f, 1.0f },
-            { 0.0f, 0.0f },
-            { 1.0f, 0.0f },
-            { 1.0f, 1.0f }
-        };
+        auto positions = std::to_array<glm::vec2>({ { 0.0f, 1.0f },
+                                                    { 0.0f, 0.0f },
+                                                    { 1.0f, 0.0f },
+                                                    { 1.0f, 1.0f } });
 
-        glm::uint elements[] = { 0, 1, 2, 2, 3, 0 }; // triangles
+        auto elements = std::to_array<glm::uint>({ 0, 1, 2, 2, 3, 0 }); // triangles
 
-        flow::gl::attribute_config attributes[] = {
-            {
-                .format = {
-                    .offset = 0,
-                    .count = 2,
-                    .type = flow::gl::type_value::gl_float },
-                .index = 0,
-                .normalize = false,
-            }
-        };
+        auto attributes = std::to_array<flow::gl::attribute_config>({ {
+            .format = {
+                .offset = 0,
+                .count = 2,
+                .type = flow::gl::type_value::gl_float },
+            .index = 0,
+            .normalize = false,
+        } });
 
         flow::renderer_config<glm::vec2, glm::uint> renderer_config{};
-        renderer_config.capacity = 100000;
+        renderer_config.capacity = 100000; // NOLINT
         renderer_config.buffer_count = 3;
         renderer_config.vertices = positions;
         renderer_config.attributes = attributes;
@@ -134,28 +148,13 @@ public:
             std::size_t x = i % width_rect_count;
             std::size_t y = i / width_rect_count;
 
-            m_state.rectangles[i].position = { x * m_state.rect_width, y * m_state.rect_height };
+            m_state.rectangles[i].position = { static_cast<float>(x) * m_state.rect_width,
+                                               static_cast<float>(y) * m_state.rect_height };
             m_state.rectangles[i].size = { m_state.rect_width, m_state.rect_height };
             m_state.rectangles[i].rotation = 0.0f;
             m_state.rectangles[i].origin = { 0.0f, 0.0f };
             m_state.rectangles[i].tex_index = m_state.random_generator.uniform<glm::uint>(0, 1);
         }
-
-        // setup window
-
-        for (auto str = glGetString(GL_VERSION); str && *str != '\0'; ++str)
-        {
-            m_state.gl_version.push_back(static_cast<char>(*str));
-        }
-
-        for (auto str = glGetString(GL_SHADING_LANGUAGE_VERSION); str && *str != '\0'; ++str)
-        {
-            m_state.gl_shading_version.push_back(static_cast<char>(*str));
-        }
-
-        set_window_size(static_cast<std::size_t>(m_state.width), static_cast<std::size_t>(m_state.height));
-        set_window_title(std::format("{} {} ({:.2f}fps {:.6f}s)", m_state.gl_version, m_state.gl_shading_version, 0.0, 0.0));
-        set_window_vsync(false);
 
         // other
 
@@ -166,7 +165,7 @@ public:
         FLOW_LOG_INFO("Rendering {} textured rectangles", m_state.rectangles.size());
     }
 
-    void update(float dt) final
+    void update(float /*dt*/) final
     {
         double elapsed_time = m_state.stopwatch.elapsed().seconds();
         double frame_time = elapsed_time - m_state.last_elapsed_time;

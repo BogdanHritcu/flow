@@ -3,12 +3,15 @@
 #include <cstdint>
 #include <memory>
 #include <string>
+#include <string_view>
+
+#include "../input/input_system.hpp"
 
 struct GLFWwindow;
 
 namespace flow {
 
-struct input_event;
+class engine_interface;
 
 namespace detail {
 
@@ -22,53 +25,83 @@ class window
 public:
     using value_type = GLFWwindow;
     using pointer_type = value_type*;
-    using size_type = std::size_t;
+    using size_type = std::uint32_t;
     // clang-format off
     using deleter_type = decltype([](pointer_type ptr) { detail::destroy(ptr); detail::terminate(); });
     // clang-format on
     using handle_type = std::unique_ptr<value_type, deleter_type>;
 
-    using input_callback_type = void (*)(window&, const input_event&);
-    using resize_callback_type = void (*)(window&, size_type, size_type);
+    struct settings
+    {
+        size_type width;
+        size_type height;
+        std::string title;
+        bool vsync;
+    };
+
+    inline static const window::settings default_settings{
+        .width = 640,
+        .height = 480,
+        .title = "Default title",
+        .vsync = false
+    };
 
 public:
-    window() noexcept;
-    window(size_type width, size_type height, const std::string& title) noexcept;
+    constexpr window() noexcept
+        : m_handle{}
+        , m_window_data{}
+        , m_settings{ default_settings }
+    {}
 
-    bool create(size_type width, size_type height, const std::string& title) noexcept;
+    window(engine_interface* engine, const settings& settings) noexcept;
+
+    bool create(engine_interface* engine, const settings& settings) noexcept;
     void close() const noexcept;
     void swap_buffers() const noexcept;
     void poll_events() const noexcept;
-    void set_vsync(bool value) const noexcept;
 
-    void set_size(size_type width, size_type height) const noexcept;
-    void set_title(const std::string& title) const noexcept;
-
-    void set_user_pointer(void* ptr) noexcept;
-    input_callback_type set_key_callback(input_callback_type callback) noexcept;
-    input_callback_type set_mouse_button_callback(input_callback_type callback) noexcept;
-    resize_callback_type set_window_resize_callback(resize_callback_type callback) noexcept;
-    resize_callback_type set_framebuffer_resize_callback(resize_callback_type callback) noexcept;
+    void set_title(std::string_view title) noexcept;
+    void set_size(size_type width, size_type height) noexcept;
+    void set_vsync(bool value) noexcept;
 
     [[nodiscard]] bool is_open() const noexcept;
-    [[nodiscard]] size_type width() const noexcept;
-    [[nodiscard]] size_type height() const noexcept;
-    [[nodiscard]] void* get_user_pointer() const noexcept;
+
+    [[nodiscard]] constexpr std::string_view title() const noexcept
+    {
+        return m_settings.title;
+    }
+
+    [[nodiscard]] constexpr size_type width() const noexcept
+    {
+        return m_settings.width;
+    }
+
+    [[nodiscard]] constexpr size_type height() const noexcept
+    {
+        return m_settings.height;
+    }
+
+    [[nodiscard]] constexpr size_type is_vsync() const noexcept
+    {
+        return m_settings.vsync;
+    }
+
+private:
+    void set_callbacks() noexcept;
+    void set_key_callback() noexcept;
+    void set_mouse_button_callback() noexcept;
+    void set_framebuffer_resize_callback() noexcept;
 
 private:
     struct window_data
     {
-        window* window;
-        void* user_ptr;
-        input_callback_type key_callback;
-        input_callback_type mouse_button_callback;
-        resize_callback_type window_resize_callback;
-        resize_callback_type framebuffer_resize_callback;
+        engine_interface* engine;
     };
 
 private:
     handle_type m_handle;
     window_data m_window_data;
+    settings m_settings;
 };
 
 } // namespace flow

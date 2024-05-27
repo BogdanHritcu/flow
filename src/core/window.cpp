@@ -1,4 +1,5 @@
 #include "../../include/flow/core/window.hpp"
+#include "include/flow/core/engine_interface.hpp"
 
 #include <string_view>
 
@@ -6,11 +7,12 @@
 #include <GLFW/glfw3.h>
 #include <glad/gl.h>
 
-#include "../../include/flow/core/assertion.hpp"
 #include "../../include/flow/core/logger.hpp"
-#include "../../include/flow/input/input_event.hpp"
+#include "../../include/flow/input/input_binding.hpp"
+#include "../../include/flow/input/input_enums.hpp"
 
 namespace flow {
+
 namespace detail {
 
     void destroy(GLFWwindow* ptr) noexcept
@@ -24,6 +26,9 @@ namespace detail {
     }
 
 } // namespace detail
+
+#ifdef FLOW_DEBUG
+void glfw_error_callback(int error, const char* description);
 
 namespace gl {
 
@@ -39,54 +44,56 @@ namespace gl {
                                    const void* user_param);
 
 } // namespace gl
+#endif
 
-void glfw_error_callback(int error, const char* description)
-{
-    FLOW_LOG_ERROR("error ({}): {}", error, description);
-}
-
-window::window() noexcept
-    : m_handle{}
-    , m_window_data{ this }
-{}
-
-window::window(size_type width, size_type height, const std::string& title) noexcept
+window::window(engine_interface* engine, const settings& settings) noexcept
     : window()
 {
-    create(width, height, title);
+    create(engine, settings);
 }
 
-bool window::create(size_type width, size_type height, const std::string& title) noexcept
+bool window::create(engine_interface* engine, const settings& settings) noexcept
 {
+    m_window_data.engine = engine;
+    m_settings = settings;
+
     if (!glfwInit())
     {
         return false;
     }
 
+#ifdef FLOW_DEBUG
     glfwSetErrorCallback(glfw_error_callback);
+#endif
 
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4); // NOLINT
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6); // NOLINT
 
-    m_handle.reset(glfwCreateWindow(static_cast<int>(width),
-                                    static_cast<int>(height),
-                                    title.c_str(),
+    m_handle.reset(glfwCreateWindow(static_cast<int>(m_settings.width),
+                                    static_cast<int>(m_settings.height),
+                                    m_settings.title.c_str(),
                                     nullptr,
                                     nullptr));
 
     if (m_handle)
     {
         glfwMakeContextCurrent(m_handle.get());
+
         glfwSetWindowUserPointer(m_handle.get(), &m_window_data);
+        glfwSwapInterval(static_cast<int>(m_settings.vsync));
 
         if (!gladLoadGL(glfwGetProcAddress))
         {
             return false;
         }
 
+        set_callbacks();
+
+#ifdef FLOW_DEBUG
         glEnable(GL_DEBUG_OUTPUT);
         glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
         glDebugMessageCallback(gl::error_callback, nullptr);
+#endif
     }
 
     return m_handle != nullptr;
@@ -107,24 +114,25 @@ void window::poll_events() const noexcept
     glfwPollEvents();
 }
 
-void window::set_vsync(bool value) const noexcept
+void window::set_title(std::string_view title) noexcept
 {
-    glfwSwapInterval(static_cast<int>(value)); // TODO: make this configurable
+    m_settings.title = title;
+    glfwSetWindowTitle(m_handle.get(), m_settings.title.c_str());
 }
 
-void window::set_size(size_type width, size_type height) const noexcept
+void window::set_size(size_type width, size_type height) noexcept // NOLINT
 {
-    glfwSetWindowSize(m_handle.get(), static_cast<int>(width), static_cast<int>(height));
+    m_settings.width = width;
+    m_settings.height = height;
+    glfwSetWindowSize(m_handle.get(),
+                      static_cast<int>(m_settings.width),
+                      static_cast<int>(m_settings.height));
 }
 
-void window::set_title(const std::string& title) const noexcept
+void window::set_vsync(bool value) noexcept
 {
-    glfwSetWindowTitle(m_handle.get(), title.c_str());
-}
-
-void window::set_user_pointer(void* ptr) noexcept
-{
-    m_window_data.user_ptr = ptr;
+    m_settings.vsync = value;
+    glfwSwapInterval(static_cast<int>(m_settings.vsync));
 }
 
 bool window::is_open() const noexcept
@@ -132,104 +140,83 @@ bool window::is_open() const noexcept
     return !glfwWindowShouldClose(m_handle.get());
 }
 
-window::size_type window::width() const noexcept
+void window::set_callbacks() noexcept
 {
-    int width;
-    glfwGetWindowSize(m_handle.get(), &width, nullptr);
-    return static_cast<size_type>(width);
+    set_key_callback();
+    set_mouse_button_callback();
+    set_framebuffer_resize_callback();
 }
 
-window::size_type window::height() const noexcept
+void window::set_key_callback() noexcept
 {
-    int height;
-    glfwGetWindowSize(m_handle.get(), nullptr, &height);
-    return static_cast<size_type>(height);
+    // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
+    auto adaptor_callback = [](GLFWwindow* glfw_window, int code, int /*scancode*/, int action, int mod) -> void
+    {
+        if (code < 0 || code == GLFW_KEY_UNKNOWN)
+        {
+            return;
+        }
+
+        auto* data = static_cast<window_data*>(glfwGetWindowUserPointer(glfw_window));
+
+        if (!(data && data->engine && data->engine->m_input))
+        {
+            return;
+        }
+
+        input_binding bind = make_binding(detail::add_code_flag<key_code>(
+                                              static_cast<detail::input_code_underlying_type>(code)),
+                                          static_cast<input_action_code>(action),
+                                          static_cast<input_modifier_code>(mod));
+
+        data->engine->m_input->invoke_callbacks(bind, *data->engine);
+    };
+
+    glfwSetKeyCallback(m_handle.get(), adaptor_callback);
 }
 
-void* window::get_user_pointer() const noexcept
+void window::set_mouse_button_callback() noexcept
 {
-    return m_window_data.user_ptr;
+    // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
+    auto adaptor_callback = [](GLFWwindow* glfw_window, int code, int action, int mod) -> void
+    {
+        if (code < 0)
+        {
+            return;
+        }
+
+        auto* data = static_cast<window_data*>(glfwGetWindowUserPointer(glfw_window));
+
+        if (!(data && data->engine && data->engine->m_input))
+        {
+            return;
+        }
+
+        input_binding bind = make_binding(detail::add_code_flag<mbtn_code>(
+                                              static_cast<detail::input_code_underlying_type>(code)),
+                                          static_cast<input_action_code>(action),
+                                          static_cast<input_modifier_code>(mod));
+
+        data->engine->m_input->invoke_callbacks(bind, *data->engine);
+    };
+
+    glfwSetMouseButtonCallback(m_handle.get(), adaptor_callback);
 }
 
-window::input_callback_type window::set_key_callback(input_callback_type callback) noexcept
+void window::set_framebuffer_resize_callback() noexcept
 {
-    input_callback_type old_callback{ m_window_data.key_callback };
-    m_window_data.key_callback = callback;
+    auto adaptor_callback = [](GLFWwindow* /*glfw_window*/, int width, int height) -> void
+    {
+        glViewport(0, 0, static_cast<GLsizei>(width), static_cast<GLsizei>(height));
+    };
 
-    glfwSetKeyCallback(m_handle.get(),
-                       [](GLFWwindow* glfw_window, int code, int scancode, int action, int mod)
-                       {
-                           if (code == GLFW_KEY_UNKNOWN)
-                           {
-                               return;
-                           }
-
-                           window_data* data = static_cast<window_data*>(glfwGetWindowUserPointer(glfw_window));
-
-                           input_binding binding{
-                               static_cast<key>(code),
-                               static_cast<input_modifier>(mod),
-                               static_cast<input_action>(action)
-                           };
-
-                           data->key_callback(*data->window, input_event{ binding });
-                       });
-
-    return old_callback;
+    glfwSetFramebufferSizeCallback(m_handle.get(), adaptor_callback);
 }
 
-window::input_callback_type window::set_mouse_button_callback(input_callback_type callback) noexcept
+#ifdef FLOW_DEBUG
+void glfw_error_callback(int error, const char* description)
 {
-    input_callback_type old_callback{ m_window_data.mouse_button_callback };
-    m_window_data.mouse_button_callback = callback;
-
-    glfwSetMouseButtonCallback(m_handle.get(),
-                               [](GLFWwindow* glfw_window, int code, int action, int mod)
-                               {
-                                   window_data* data = static_cast<window_data*>(glfwGetWindowUserPointer(glfw_window));
-
-                                   input_binding binding{
-                                       static_cast<mouse_button>(code),
-                                       static_cast<input_modifier>(mod),
-                                       static_cast<input_action>(action)
-                                   };
-
-                                   data->key_callback(*data->window, input_event{ binding });
-                               });
-
-    return old_callback;
-}
-
-window::resize_callback_type window::set_window_resize_callback(resize_callback_type callback) noexcept
-{
-    resize_callback_type old_callback{ m_window_data.window_resize_callback };
-    m_window_data.window_resize_callback = callback;
-
-    glfwSetWindowSizeCallback(m_handle.get(),
-                              [](GLFWwindow* glfw_window, int width, int height)
-                              {
-                                  window_data* data = static_cast<window_data*>(glfwGetWindowUserPointer(glfw_window));
-
-                                  data->window_resize_callback(*data->window, static_cast<size_type>(width), static_cast<size_type>(height));
-                              });
-
-    return old_callback;
-}
-
-window::resize_callback_type window::set_framebuffer_resize_callback(resize_callback_type callback) noexcept
-{
-    resize_callback_type old_callback{ m_window_data.framebuffer_resize_callback };
-    m_window_data.framebuffer_resize_callback = callback;
-
-    glfwSetFramebufferSizeCallback(m_handle.get(),
-                                   [](GLFWwindow* glfw_window, int width, int height)
-                                   {
-                                       window_data* data = static_cast<window_data*>(glfwGetWindowUserPointer(glfw_window));
-
-                                       data->framebuffer_resize_callback(*data->window, static_cast<size_type>(width), static_cast<size_type>(height));
-                                   });
-
-    return old_callback;
+    FLOW_LOG_ERROR("error ({}): {}", error, description);
 }
 
 namespace gl {
@@ -295,13 +282,15 @@ namespace gl {
         }
     }
 
+    // NOLINTBEGIN(bugprone-easily-swappable-parameters)
     void GLAPIENTRY error_callback(GLenum source_id,
                                    GLenum type_id,
-                                   GLuint id,
+                                   GLuint /*id*/,
                                    GLenum severity_id,
                                    GLsizei msg_length,
                                    const GLchar* msg,
-                                   const void* user_param)
+                                   const void* /*user_param*/)
+    // NOLINTEND(bugprone-easily-swappable-parameters)
     {
         std::string_view source = debug_message_source_name(source_id);
         std::string_view type = debug_message_type_name(type_id);
@@ -331,4 +320,6 @@ namespace gl {
     }
 
 } // namespace gl
+#endif
+
 } // namespace flow
