@@ -71,6 +71,9 @@ set(FLOW_HEADERS "include/flow/core/application.hpp"
                  "include/flow/utility/uuid.hpp")
 
 set(FLOW_DATA_DIR "${CMAKE_CURRENT_SOURCE_DIR}/data")
+if (NOT PROJECT_IS_TOP_LEVEL)
+    set(FLOW_DATA_DIR "${FLOW_DATA_DIR}" PARENT_SCOPE)
+endif()
 
 target_sources(flow PRIVATE ${FLOW_SOURCES})
 target_sources(flow PUBLIC FILE_SET HEADERS FILES ${FLOW_HEADERS})
