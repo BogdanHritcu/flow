@@ -55,4 +55,20 @@ template<typename T>
     return (1.0f - t) * x + t * y;
 };
 
+template<std::unsigned_integral T>
+[[nodiscard]] constexpr T add_sat(T a, T b) noexcept
+{
+    return a <= std::numeric_limits<T>::max() - b
+             ? a + b
+             : std::numeric_limits<T>::max();
+}
+
+template<std::unsigned_integral T>
+[[nodiscard]] constexpr T sub_sat(T a, T b) noexcept
+{
+    return a >= std::numeric_limits<T>::min() + b
+             ? a - b
+             : std::numeric_limits<T>::min();
+}
+
 } // namespace flow
