@@ -29,18 +29,18 @@ public:
 
     constexpr void forward(unit_type units) noexcept
     {
-        m_cursor = std::max(m_bounds.end, add_sat(m_cursor, units));
+        m_cursor = std::min(m_bounds.end, add_sat(m_cursor, units));
+    }
+
+    constexpr void backward(unit_type units) noexcept
+    {
+        m_cursor = std::max(m_bounds.start, sub_sat(m_cursor, units));
     }
 
     constexpr void forward_inc(unit_type units) noexcept
     {
         m_cursor = add_sat(m_cursor, units);
         m_bounds.end = std::max(m_cursor, m_bounds.end);
-    }
-
-    constexpr void backward(unit_type units) noexcept
-    {
-        m_cursor = std::min(m_bounds.start, sub_sat(m_cursor, units));
     }
 
     constexpr void backward_dec(unit_type units) noexcept
@@ -63,7 +63,7 @@ public:
 
     constexpr void inc_left(unit_type units) noexcept
     {
-        m_bounds.start = std::min(sub_sat(m_bounds.start, units), m_bounds.end);
+        m_bounds.start = std::min(add_sat(m_bounds.start, units), m_bounds.end);
         m_cursor = std::max(m_bounds.start, m_cursor);
     }
 
@@ -83,7 +83,7 @@ public:
         m_cursor = std::min(m_bounds.end, m_cursor);
     }
 
-    [[nodiscard]] constexpr unit_type cursor() const noexcept
+    [[nodiscard]] constexpr unit_type position() const noexcept
     {
         return m_cursor;
     }
