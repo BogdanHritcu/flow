@@ -25,7 +25,7 @@ struct basic_integer_range
     [[nodiscard]] constexpr std::optional<value_type> lerp(InterpT t) const noexcept
     {
         return is_valid()
-                 ? (start + !S) + static_cast<value_type>(static_cast<InterpT>((end - !E) - (start + !S)) * t)
+                 ? std::optional{ (start + !S) + static_cast<value_type>(static_cast<InterpT>((end - !E) - (start + !S)) * t) }
                  : std::nullopt;
     }
 
