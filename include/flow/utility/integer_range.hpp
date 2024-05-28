@@ -16,6 +16,19 @@ struct basic_integer_range
     T start;
     T end;
 
+    [[nodiscard]] constexpr bool contains(value_type value) const noexcept
+    {
+        return is_valid() && start + !S <= value && value <= end - !E;
+    }
+
+    template<std::floating_point InterpT>
+    [[nodiscard]] constexpr std::optional<value_type> lerp(InterpT t) const noexcept
+    {
+        return is_valid()
+                 ? (start + !S) + static_cast<value_type>(static_cast<InterpT>((end - !E) - (start + !S)) * t)
+                 : std::nullopt;
+    }
+
     [[nodiscard]] constexpr std::size_t size() const noexcept
     {
         return is_valid() ? (end - !E) - (start + !S) + 1 : 0;
