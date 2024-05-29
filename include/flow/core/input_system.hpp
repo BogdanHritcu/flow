@@ -7,10 +7,10 @@
 #include <utility>
 #include <vector>
 
+#include "../input/input_binding.hpp"
+#include "../input/input_context.hpp"
+#include "../input/input_enums.hpp"
 #include "../utility/helpers.hpp"
-#include "input_binding.hpp"
-#include "input_context.hpp"
-#include "input_enums.hpp"
 
 namespace flow {
 

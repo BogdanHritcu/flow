@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../input/input_system.hpp"
 #include "engine_interface.hpp"
+#include "input_system.hpp"
 #include "window.hpp"
 
 namespace flow {

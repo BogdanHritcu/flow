@@ -1,9 +1,10 @@
 #pragma once
 
-#include "input_binding.hpp"
-#include "input_enums.hpp"
-#include "input_system.hpp"
 #include <string_view>
+
+#include "../input/input_binding.hpp"
+#include "../input/input_enums.hpp"
+#include "input_system.hpp"
 
 namespace flow {
 

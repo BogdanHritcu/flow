@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../input/input_system_interface.hpp"
+#include "input_system_interface.hpp"
 #include "window_interface.hpp"
 
 namespace flow {

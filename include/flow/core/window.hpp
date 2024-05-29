@@ -5,7 +5,7 @@
 #include <string>
 #include <string_view>
 
-#include "../input/input_system.hpp"
+#include "input_system.hpp"
 
 struct GLFWwindow;
 
