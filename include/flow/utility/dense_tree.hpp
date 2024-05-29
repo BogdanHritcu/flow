@@ -231,6 +231,21 @@ public:
         return const_iterator(this, end_index);
     }
 
+    [[nodiscard]] constexpr iterator get_iterator(index_type index) noexcept
+    {
+        return iterator(this, index);
+    }
+
+    [[nodiscard]] constexpr const_iterator get_iterator(index_type index) const noexcept
+    {
+        return const_iterator(this, index);
+    }
+
+    [[nodiscard]] constexpr const_iterator get_citerator(index_type index) const noexcept
+    {
+        return const_iterator(this, index);
+    }
+
     constexpr iterator insert_after(const_iterator it, const value_type& value)
     {
         const bool is_before_begin_it = it == before_begin();
