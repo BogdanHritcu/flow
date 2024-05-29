@@ -27,60 +27,104 @@ public:
         : bounded_cursor(start, end, start)
     {}
 
-    constexpr void forward(unit_type units) noexcept
+    constexpr unit_type forward(unit_type units) noexcept
     {
+        const auto old_position = m_position;
         m_position = std::min(m_bounds.end, add_sat(m_position, units));
+
+        return m_position - old_position;
     }
 
-    constexpr void backward(unit_type units) noexcept
+    constexpr unit_type backward(unit_type units) noexcept
     {
+        const auto old_position = m_position;
         m_position = std::max(m_bounds.start, sub_sat(m_position, units));
+
+        return old_position - m_position;
     }
 
-    constexpr void forward_inc(unit_type units) noexcept
+    constexpr unit_type forward_inc(unit_type units) noexcept
     {
+        const auto old_position = m_position;
         m_position = add_sat(m_position, units);
         m_bounds.end = std::max(m_position, m_bounds.end);
+
+        return m_position - old_position;
     }
 
-    constexpr void backward_dec(unit_type units) noexcept
+    constexpr unit_type backward_dec(unit_type units) noexcept
     {
+        const auto old_position = m_position;
         m_position = sub_sat(m_position, units);
         m_bounds.start = std::min(m_position, m_bounds.start);
+
+        return old_position - m_position;
     }
 
-    constexpr void seek(unit_type position) noexcept
+    constexpr unit_type seek(unit_type position) noexcept
     {
         m_position = std::clamp(position, m_bounds.start, m_bounds.end);
+
+        return m_position;
     }
 
-    constexpr void seek_inc_dec(unit_type position) noexcept
+    constexpr unit_type seek_inc(unit_type position) noexcept
+    {
+        m_position = std::max(position, m_bounds.start);
+        m_bounds.end = std::max(m_position, m_bounds.end);
+
+        return m_position;
+    }
+
+    constexpr unit_type seek_dec(unit_type position) noexcept
+    {
+        m_position = std::min(position, m_bounds.end);
+        m_bounds.start = std::min(m_position, m_bounds.start);
+
+        return m_position;
+    }
+
+    constexpr unit_type seek_inc_dec(unit_type position) noexcept
     {
         m_position = position;
         m_bounds.start = std::min(m_position, m_bounds.start);
         m_bounds.end = std::max(m_position, m_bounds.end);
+
+        return m_position;
     }
 
-    constexpr void inc_start(unit_type units) noexcept
+    constexpr unit_type inc_start(unit_type units) noexcept
     {
+        const auto old_start = m_bounds.start;
         m_bounds.start = std::min(add_sat(m_bounds.start, units), m_bounds.end);
         m_position = std::max(m_bounds.start, m_position);
+
+        return m_bounds.start - old_start;
     }
 
-    constexpr void inc_end(unit_type units) noexcept
+    constexpr unit_type inc_end(unit_type units) noexcept
     {
+        const auto old_end = m_bounds.end;
         m_bounds.end = add_sat(m_bounds.end, units);
+
+        return m_bounds.end - old_end;
     }
 
-    constexpr void dec_start(unit_type units) noexcept
+    constexpr unit_type dec_start(unit_type units) noexcept
     {
+        const auto old_start = m_bounds.start;
         m_bounds.start = sub_sat(m_bounds.start, units);
+
+        return old_start - m_bounds.start;
     }
 
-    constexpr void dec_end(unit_type units) noexcept
+    constexpr unit_type dec_end(unit_type units) noexcept
     {
+        const auto old_end = m_bounds.end;
         m_bounds.end = std::max(sub_sat(m_bounds.end, units), m_bounds.start);
         m_position = std::min(m_bounds.end, m_position);
+
+        return old_end - m_bounds.end;
     }
 
     [[nodiscard]] constexpr const bounds_type& bounds() const noexcept
@@ -111,6 +155,11 @@ public:
     [[nodiscard]] constexpr bool is_valid() const noexcept
     {
         return m_bounds.contains(m_position);
+    }
+
+    [[nodiscard]] constexpr operator bool() const noexcept
+    {
+        return is_valid();
     }
 
 private:
