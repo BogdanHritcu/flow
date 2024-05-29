@@ -1,10 +1,13 @@
 #pragma once
 
-#include "flow/core/engine_interface.hpp"
-#include "flow/input/input_binding.hpp"
-#include <flow/core/application.hpp>
-#include <flow/input/input_enums.hpp>
 #include <string_view>
+
+#include <flow/core/application.hpp>
+#include <flow/core/engine_interface.hpp>
+#include <flow/core/logger.hpp>
+#include <flow/input/input_binding.hpp>
+#include <flow/input/input_enums.hpp>
+#include <flow/utility/integer_range.hpp>
 
 constexpr std::string_view context_start_screen = "start_screen";
 constexpr std::string_view context_main_menu = "main_menu";
@@ -187,14 +190,6 @@ public:
 
         FLOW_LOG_INFO("start screen");
         FLOW_LOG_INFO("press any key or button to start");
-    }
-
-    void update(float dt) final
-    {
-    }
-
-    void end() final
-    {
     }
 
 private:

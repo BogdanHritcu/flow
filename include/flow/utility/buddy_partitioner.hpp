@@ -9,7 +9,7 @@
 #include <vector>
 
 #include "../core/assertion.hpp"
-#include "../utility/helpers.hpp"
+#include "../utility/numeric.hpp"
 
 namespace flow {
 

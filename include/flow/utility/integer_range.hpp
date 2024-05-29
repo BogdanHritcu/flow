@@ -2,9 +2,12 @@
 
 #include <algorithm>
 #include <concepts>
+#include <functional>
 #include <limits>
 #include <optional>
 #include <type_traits>
+
+#include "numeric.hpp"
 
 namespace flow {
 
@@ -12,21 +15,21 @@ template<std::integral T, bool S, bool E>
 struct basic_integer_range
 {
     using value_type = T;
+    using start_comp = std::conditional_t<S, std::greater_equal<T>, std::greater<T>>;
+    using end_comp = std::conditional_t<E, std::less_equal<T>, std::less<T>>;
 
     T start;
     T end;
 
     [[nodiscard]] constexpr bool contains(value_type value) const noexcept
     {
-        return is_valid() && start + !S <= value && value <= end - !E;
+        return start_comp{}(value, start) && end_comp{}(value, end);
     }
 
-    template<std::floating_point InterpT>
-    [[nodiscard]] constexpr std::optional<value_type> lerp(InterpT t) const noexcept
+    template<std::floating_point F>
+    [[nodiscard]] constexpr value_type lerp(F t) const noexcept
     {
-        return is_valid()
-                 ? std::optional{ (start + !S) + static_cast<value_type>(static_cast<InterpT>((end - !E) - (start + !S)) * t) }
-                 : std::nullopt;
+        return flow::lerp(start, end, t);
     }
 
     [[nodiscard]] constexpr std::size_t size() const noexcept
