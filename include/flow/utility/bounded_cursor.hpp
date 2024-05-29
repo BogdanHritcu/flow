@@ -105,7 +105,7 @@ public:
 
     [[nodiscard]] constexpr unit_type size() const noexcept
     {
-        return m_bounds.size();
+        return m_bounds.end - m_bounds.end;
     }
 
     [[nodiscard]] constexpr bool is_valid() const noexcept
