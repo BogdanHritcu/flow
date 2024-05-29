@@ -246,6 +246,11 @@ public:
         return const_iterator(this, index);
     }
 
+    [[nodiscard]] constexpr index_type get_index(const_iterator it) const noexcept
+    {
+        return it.m_index;
+    }
+
     constexpr iterator insert_after(const_iterator it, const value_type& value)
     {
         const bool is_before_begin_it = it == before_begin();
