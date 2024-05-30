@@ -46,8 +46,17 @@ public:
     constexpr unit_type forward_inc(unit_type units) noexcept
     {
         const auto old_position = m_position;
-        m_position = add_sat(m_position, units);
-        m_bounds.end = std::max(m_position, m_bounds.end);
+
+        auto capacity = sub_sat(m_bounds.end - m_position, 1);
+        if (units > capacity)
+        {
+            m_bounds.end = add_sat(m_bounds.end, units - capacity);
+            m_position = m_bounds.end - 1;
+        }
+        else
+        {
+            m_position += units;
+        }
 
         return m_position - old_position;
     }
@@ -71,7 +80,7 @@ public:
     constexpr unit_type seek_inc(unit_type position) noexcept
     {
         m_position = std::max(position, m_bounds.start);
-        m_bounds.end = std::max(m_position, m_bounds.end);
+        m_bounds.end = std::max(add_sat(m_position, 1), m_bounds.end);
 
         return m_position;
     }
@@ -88,7 +97,7 @@ public:
     {
         m_position = position;
         m_bounds.start = std::min(m_position, m_bounds.start);
-        m_bounds.end = std::max(m_position, m_bounds.end);
+        m_bounds.end = std::max(add_sat(m_position, 1), m_bounds.end);
 
         return m_position;
     }
