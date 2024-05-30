@@ -47,7 +47,7 @@ public:
     {
         const auto old_position = m_position;
 
-        auto capacity = sub_sat(m_bounds.end - m_position, 1);
+        auto capacity = sub_sat(m_bounds.end - m_position, unit_type{ 1 });
         if (units > capacity)
         {
             m_bounds.end = add_sat(m_bounds.end, units - capacity);
@@ -80,7 +80,7 @@ public:
     constexpr unit_type seek_inc(unit_type position) noexcept
     {
         m_position = std::max(position, m_bounds.start);
-        m_bounds.end = std::max(add_sat(m_position, 1), m_bounds.end);
+        m_bounds.end = std::max(add_sat(m_position, unit_type{ 1 }), m_bounds.end);
 
         return m_position;
     }
@@ -97,7 +97,7 @@ public:
     {
         m_position = position;
         m_bounds.start = std::min(m_position, m_bounds.start);
-        m_bounds.end = std::max(add_sat(m_position, 1), m_bounds.end);
+        m_bounds.end = std::max(add_sat(m_position, unit_type{ 1 }), m_bounds.end);
 
         return m_position;
     }
