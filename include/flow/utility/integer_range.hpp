@@ -18,30 +18,30 @@ struct basic_integer_range
     using start_comp = std::conditional_t<S, std::greater_equal<T>, std::greater<T>>;
     using end_comp = std::conditional_t<E, std::less_equal<T>, std::less<T>>;
 
-    T start;
+    T begin;
     T end;
 
     [[nodiscard]] constexpr bool contains(value_type value) const noexcept
     {
-        return start_comp{}(value, start) && end_comp{}(value, end);
+        return start_comp{}(value, begin) && end_comp{}(value, end);
     }
 
     template<std::floating_point F>
     [[nodiscard]] constexpr value_type lerp(F t) const noexcept
     {
-        return flow::lerp(start, end, t);
+        return flow::lerp(begin, end, t);
     }
 
     [[nodiscard]] constexpr std::size_t size() const noexcept
     {
-        return is_valid() ? (end - !E) - (start + !S) + 1 : 0;
+        return is_valid() ? (end - !E) - (begin + !S) + 1 : 0;
     }
 
     [[nodiscard]] constexpr bool is_valid() const noexcept
     {
-        return start <= std::numeric_limits<T>::max() - !S
+        return begin <= std::numeric_limits<T>::max() - !S
             && end >= std::numeric_limits<T>::min() + !E
-            && start + !S <= end - !E;
+            && begin + !S <= end - !E;
     }
 
     [[nodiscard]] constexpr bool is_start_inclusive() const noexcept
@@ -82,8 +82,8 @@ template<std::integral T, bool ST, bool ET, std::integral U, bool SU, bool EU>
     using common_type = std::common_type_t<T, U>;
     using range_type = basic_integer_range<common_type, true, true>;
 
-    const auto intersection = std::make_optional<range_type>(std::max(static_cast<common_type>(rt.start + !ST),
-                                                                      static_cast<common_type>(ru.start + !SU)),
+    const auto intersection = std::make_optional<range_type>(std::max(static_cast<common_type>(rt.begin + !ST),
+                                                                      static_cast<common_type>(ru.begin + !SU)),
                                                              std::min(static_cast<common_type>(rt.end - !ET),
                                                                       static_cast<common_type>(ru.end - !EU)));
 
@@ -96,7 +96,7 @@ template<std::integral... Ts, bool... Ss, bool... Es>
     using common_type = std::common_type_t<Ts...>;
     using range_type = basic_integer_range<common_type, true, true>;
 
-    const auto intersection = std::make_optional<range_type>(std::max({ static_cast<common_type>(rs.start + !Ss)... }),
+    const auto intersection = std::make_optional<range_type>(std::max({ static_cast<common_type>(rs.begin + !Ss)... }),
                                                              std::min({ static_cast<common_type>(rs.end - !Es)... }));
 
     return intersection->is_valid() ? intersection : std::optional<range_type>{};
@@ -108,7 +108,7 @@ template<std::integral T, bool ST, bool ET, std::integral U, bool SU, bool EU>
 {
     using common_type = std::common_type_t<T, U>;
 
-    return std::max(static_cast<common_type>(rt.start + !ST), static_cast<common_type>(ru.start + !SU))
+    return std::max(static_cast<common_type>(rt.begin + !ST), static_cast<common_type>(ru.begin + !SU))
         <= std::min(static_cast<common_type>(rt.end - !ET), static_cast<common_type>(ru.end - !EU));
 }
 
@@ -117,7 +117,7 @@ template<std::integral... Ts, bool... Ss, bool... Es>
 {
     using common_type = std::common_type_t<Ts...>;
 
-    return std::max({ static_cast<common_type>(rs.start + !Ss)... })
+    return std::max({ static_cast<common_type>(rs.begin + !Ss)... })
         <= std::min({ static_cast<common_type>(rs.end - !Es)... });
 }
 
