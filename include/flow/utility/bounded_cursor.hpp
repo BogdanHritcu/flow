@@ -20,7 +20,11 @@ public:
 
     constexpr bounded_cursor(unit_type begin, unit_type end, unit_type position) noexcept
         : m_bounds{ make_ie_integer_range(begin, end) }
-        , m_position{ std::clamp(position, begin, end) }
+        , m_position(std::clamp(position, m_bounds.begin, m_bounds.end))
+    {}
+
+    constexpr bounded_cursor(bounds_type bounds, unit_type position) noexcept
+        : bounded_cursor(bounds.begin, bounds.end, position)
     {}
 
     constexpr bounded_cursor(unit_type begin, unit_type end) noexcept
