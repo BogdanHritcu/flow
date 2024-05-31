@@ -19,7 +19,7 @@ public:
     constexpr bounded_cursor() noexcept = default;
 
     constexpr bounded_cursor(unit_type begin, unit_type end, unit_type position) noexcept
-        : m_bounds{ std::min(begin, end), std::max(begin, end) }
+        : m_bounds{ make_ie_integer_range(begin, end) }
         , m_position{ std::clamp(position, begin, end) }
     {}
 

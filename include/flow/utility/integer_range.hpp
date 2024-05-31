@@ -75,6 +75,40 @@ using ee_integer_range = basic_integer_range<T, false, false>;
 template<std::integral T>
 using integer_range = ii_integer_range<T>;
 
+template<std::integral T, bool S, bool E>
+[[nodiscard]] decltype(auto) make_integer_range(T begin, T end) noexcept
+{
+    using range_type = basic_integer_range<T, S, E>;
+
+    return begin <= end
+             ? range_type{ begin, end }
+             : range_type{ end, begin };
+}
+
+template<std::integral T>
+[[nodiscard]] decltype(auto) make_ii_integer_range(T begin, T end) noexcept
+{
+    return make_integer_range<T, true, true>(begin, end);
+}
+
+template<std::integral T>
+[[nodiscard]] decltype(auto) make_ei_integer_range(T begin, T end) noexcept
+{
+    return make_integer_range<T, false, true>(begin, end);
+}
+
+template<std::integral T>
+[[nodiscard]] decltype(auto) make_ie_integer_range(T begin, T end) noexcept
+{
+    return make_integer_range<T, true, false>(begin, end);
+}
+
+template<std::integral T>
+[[nodiscard]] decltype(auto) make_ee_integer_range(T begin, T end) noexcept
+{
+    return make_integer_range<T, false, false>(begin, end);
+}
+
 template<std::integral T, bool ST, bool ET, std::integral U, bool SU, bool EU>
 [[nodiscard]] constexpr decltype(auto) integer_range_intersection(basic_integer_range<T, ST, ET> rt,
                                                                   basic_integer_range<U, SU, EU> ru) noexcept
