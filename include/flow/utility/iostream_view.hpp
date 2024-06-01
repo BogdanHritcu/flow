@@ -15,6 +15,12 @@ public:
     using pos_type = std::iostream::pos_type;
     using off_type = std::iostream::off_type;
     using seekdir = std::iostream::seekdir;
+    using iostate = std::iostream::iostate;
+
+    static constexpr auto goodbit = std::iostream::goodbit;
+    static constexpr auto badbit = std::iostream::badbit;
+    static constexpr auto failbit = std::iostream::failbit;
+    static constexpr auto eofbit = std::iostream::eofbit;
 
     static constexpr auto begin = std::iostream::beg;
     static constexpr auto end = std::iostream::end;
@@ -133,6 +139,44 @@ public:
     [[nodiscard]] constexpr operator ostream_view() const noexcept
     {
         return { m_in_out };
+    }
+
+    [[nodiscard]] bool good() const
+    {
+        return m_in_out && m_in_out->good();
+    }
+
+    [[nodiscard]] bool eof() const
+    {
+        return m_in_out && m_in_out->eof();
+    }
+
+    [[nodiscard]] bool fail() const
+    {
+        return m_in_out && m_in_out->fail();
+    }
+
+    [[nodiscard]] bool bad() const
+    {
+        return m_in_out && m_in_out->bad();
+    }
+
+    [[nodiscard]] bool operator!() const
+    {
+        return m_in_out && m_in_out->fail();
+    }
+
+    [[nodiscard]] explicit operator bool() const
+    {
+        return m_in_out && !m_in_out->fail();
+    }
+
+    void clear(iostate state = goodbit)
+    {
+        if (m_in_out)
+        {
+            m_in_out->clear(state);
+        }
     }
 
 private:

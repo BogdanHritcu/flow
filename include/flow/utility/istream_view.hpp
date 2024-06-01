@@ -16,6 +16,12 @@ public:
     using pos_type = std::istream::pos_type;
     using off_type = std::istream::off_type;
     using seekdir = std::istream::seekdir;
+    using iostate = std::istream::iostate;
+
+    static constexpr auto goodbit = std::istream::goodbit;
+    static constexpr auto badbit = std::istream::badbit;
+    static constexpr auto failbit = std::istream::failbit;
+    static constexpr auto eofbit = std::istream::eofbit;
 
     static constexpr auto begin = std::istream::beg;
     static constexpr auto end = std::istream::end;
@@ -91,6 +97,44 @@ public:
     [[nodiscard]] pos_type tell()
     {
         return m_in ? m_in->tellg() : pos_type{ 0 };
+    }
+
+    [[nodiscard]] bool good() const
+    {
+        return m_in && m_in->good();
+    }
+
+    [[nodiscard]] bool eof() const
+    {
+        return m_in && m_in->eof();
+    }
+
+    [[nodiscard]] bool fail() const
+    {
+        return m_in && m_in->fail();
+    }
+
+    [[nodiscard]] bool bad() const
+    {
+        return m_in && m_in->bad();
+    }
+
+    [[nodiscard]] bool operator!() const
+    {
+        return m_in && m_in->fail();
+    }
+
+    [[nodiscard]] explicit operator bool() const
+    {
+        return m_in && !m_in->fail();
+    }
+
+    void clear(iostate state = goodbit)
+    {
+        if (m_in)
+        {
+            m_in->clear(state);
+        }
     }
 
 private:
