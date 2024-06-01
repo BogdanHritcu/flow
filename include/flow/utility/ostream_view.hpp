@@ -56,7 +56,7 @@ private:
 template<concepts::trivially_copyable T, typename Traits>
 struct serializer<T, Traits>
 {
-    void operator()(ostream_view& out, const T& data) const
+    void operator()(ostream_view out, const T& data) const
     {
         out.write(data);
     }
@@ -68,7 +68,7 @@ struct serializer<R, Traits>
 {
     using size_type = typename Traits::size_type;
 
-    void operator()(ostream_view& out, const R& range) const
+    void operator()(ostream_view out, const R& range) const
     {
         const auto size = static_cast<size_type>(std::ranges::size(range));
         out.write(size);
@@ -81,7 +81,7 @@ struct serializer<R, Traits>
 {
     using size_type = typename Traits::size_type;
 
-    void operator()(ostream_view& out, const R& range) const
+    void operator()(ostream_view out, const R& range) const
     {
         const auto size = static_cast<size_type>(std::ranges::size(range));
         out.write(size);

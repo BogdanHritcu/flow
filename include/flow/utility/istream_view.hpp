@@ -55,7 +55,7 @@ private:
 template<concepts::trivially_copyable T, typename Traits>
 struct deserializer<T, Traits>
 {
-    void operator()(istream_view& in, T& data) const
+    void operator()(istream_view in, T& data) const
     {
         in.read(data);
     }
@@ -67,7 +67,7 @@ struct deserializer<R, Traits>
 {
     using size_type = typename Traits::size_type;
 
-    void operator()(istream_view& in, R& range) const
+    void operator()(istream_view in, R& range) const
     {
         size_type size{};
         in.read(size);
@@ -82,7 +82,7 @@ struct deserializer<R, Traits>
 {
     using size_type = typename Traits::size_type;
 
-    void operator()(istream_view& in, R& range) const
+    void operator()(istream_view in, R& range) const
     {
         size_type size{};
         in.read(size);

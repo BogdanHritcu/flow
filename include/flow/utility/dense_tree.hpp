@@ -7,8 +7,8 @@
 #include <vector>
 
 #include "concepts.hpp"
-#include "istream.hpp"
-#include "ostream.hpp"
+#include "istream_view.hpp"
+#include "ostream_view.hpp"
 #include "traits.hpp"
 
 namespace flow {
@@ -599,7 +599,7 @@ struct serializer<dense_tree<DataT, IndexT>>
     using node_type = typename dense_tree<DataT, IndexT>::node_type;
     using traits = serialization_traits<dense_tree<DataT, IndexT>>;
 
-    void operator()(ostream_view& out, const dense_tree<DataT, IndexT>& t) const
+    void operator()(ostream_view out, const dense_tree<DataT, IndexT>& t) const
     {
         if constexpr (concepts::trivially_copyable<node_type>)
         {
@@ -614,7 +614,7 @@ struct serializer<dense_tree<DataT, IndexT>>
             for (const auto& node : t.node_slots() | std::views::take(size))
             {
                 out.serialize(node,
-                              [](ostream_view& out, const node_type& n)
+                              [](ostream_view out, const node_type& n)
                               {
                                   out.serialize(n.value)
                                       .serialize(n.indices);
@@ -633,7 +633,7 @@ struct deserializer<dense_tree<DataT, IndexT>>
     using node_type = typename dense_tree<DataT, IndexT>::node_type;
     using traits = serialization_traits<dense_tree<DataT, IndexT>>;
 
-    void operator()(istream_view& in, dense_tree<DataT, IndexT>& t) const
+    void operator()(istream_view in, dense_tree<DataT, IndexT>& t) const
     {
         if constexpr (concepts::trivially_copyable<node_type>)
         {
@@ -650,7 +650,7 @@ struct deserializer<dense_tree<DataT, IndexT>>
             for (const auto& node : t.node_slots())
             {
                 in.deserialize(node,
-                               [](istream_view& in, node_type& n)
+                               [](istream_view in, node_type& n)
                                {
                                    in.deserialize(n.value)
                                        .deserialize(n.indices);
