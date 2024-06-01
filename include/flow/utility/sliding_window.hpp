@@ -104,7 +104,7 @@ namespace detail {
     template<std::unsigned_integral T>
     constexpr void sliding_window_resize_bounds(sliding_window<T>& window, T size) noexcept
     {
-        detail::bounded_cursor_set_size(window.cursor, size);
+        detail::bounded_cursor_resize(window.cursor, size);
         window.size = std::min(window.size, window.cursor.bounds.end - window.cursor.position);
     }
 
