@@ -131,16 +131,6 @@ public:
         return ostream_view(m_in_out).tell();
     }
 
-    [[nodiscard]] constexpr operator istream_view() const noexcept
-    {
-        return { m_in_out };
-    }
-
-    [[nodiscard]] constexpr operator ostream_view() const noexcept
-    {
-        return { m_in_out };
-    }
-
     [[nodiscard]] bool good() const
     {
         return m_in_out && m_in_out->good();
@@ -177,6 +167,16 @@ public:
         {
             m_in_out->clear(state);
         }
+    }
+
+    [[nodiscard]] constexpr operator istream_view() const noexcept
+    {
+        return { m_in_out };
+    }
+
+    [[nodiscard]] constexpr operator ostream_view() const noexcept
+    {
+        return { m_in_out };
     }
 
 private:

@@ -41,7 +41,7 @@ public:
     template<concepts::trivially_copyable T>
     ostream_view& write(const T& data)
     {
-        if (m_out)
+        if (good())
         {
             // NOLINTNEXTLINE(*-reinterpret-cast)
             m_out->write(reinterpret_cast<const char*>(&data), sizeof(data));
@@ -52,7 +52,7 @@ public:
     template<concepts::trivially_copyable T>
     ostream_view& write(std::span<const T> span)
     {
-        if (m_out)
+        if (good())
         {
             // NOLINTNEXTLINE(*-reinterpret-cast)
             m_out->write(reinterpret_cast<const char*>(span.data()), span.size_bytes());
@@ -63,7 +63,7 @@ public:
     template<typename T, concepts::serializer<T> SerializerT>
     ostream_view& serialize(const T& data, SerializerT serializer)
     {
-        if (m_out)
+        if (good())
         {
             std::invoke(serializer, *this, data);
         }
@@ -78,7 +78,7 @@ public:
 
     ostream_view& seek(pos_type position)
     {
-        if (m_out)
+        if (good())
         {
             m_out->seekp(position);
         }
@@ -87,7 +87,7 @@ public:
 
     ostream_view& seek(off_type offset, seekdir direction)
     {
-        if (m_out)
+        if (good())
         {
             m_out->seekp(offset, direction);
         }
@@ -96,7 +96,7 @@ public:
 
     [[nodiscard]] pos_type tell()
     {
-        return m_out ? m_out->tellp() : pos_type{ 0 };
+        return good() ? m_out->tellp() : pos_type{ 0 };
     }
 
     [[nodiscard]] bool good() const
