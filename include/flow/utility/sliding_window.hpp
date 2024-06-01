@@ -31,7 +31,7 @@ namespace detail {
     }
 
     template<std::unsigned_integral T>
-    [[nodiscard]] constexpr sliding_window<T> make_cursor(T begin, T size, T window_size) noexcept
+    [[nodiscard]] constexpr sliding_window<T> make_sliding_window(T begin, T size, T window_size) noexcept
     {
         window_size = std::min(window_size, size);
 
