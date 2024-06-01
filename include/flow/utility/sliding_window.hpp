@@ -102,14 +102,14 @@ namespace detail {
     }
 
     template<std::unsigned_integral T>
-    constexpr void sliding_window_set_bounds_size(sliding_window<T>& window, T size) noexcept
+    constexpr void sliding_window_resize_bounds(sliding_window<T>& window, T size) noexcept
     {
         detail::bounded_cursor_set_size(window.cursor, size);
         window.size = std::min(window.size, window.cursor.bounds.end - window.cursor.position);
     }
 
     template<std::unsigned_integral T>
-    constexpr void sliding_window_set_size(sliding_window<T>& window, T size) noexcept
+    constexpr void sliding_window_resize(sliding_window<T>& window, T size) noexcept
     {
         const auto capacity = window.cursor.bounds.end - window.cursor.position;
 
@@ -212,14 +212,14 @@ public:
         return detail::sliding_window_dec_bounds_begin(m_window, amount);
     }
 
-    constexpr void set_size(unit_type size) noexcept
+    constexpr void resize(unit_type size) noexcept
     {
-        return detail::sliding_window_set_size(m_window, size);
+        return detail::sliding_window_resize(m_window, size);
     }
 
-    constexpr void set_bounds_size(unit_type size) noexcept
+    constexpr void resize_bounds(unit_type size) noexcept
     {
-        return detail::sliding_window_set_bounds_size(m_window, size);
+        return detail::sliding_window_resize_bounds(m_window, size);
     }
 
     [[nodiscard]] constexpr unit_type begin() const noexcept

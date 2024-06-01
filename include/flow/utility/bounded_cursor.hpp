@@ -156,7 +156,7 @@ namespace detail {
     }
 
     template<std::unsigned_integral T>
-    constexpr void bounded_cursor_set_size(bounded_cursor<T>& cursor, T size) noexcept
+    constexpr void bounded_cursor_resize(bounded_cursor<T>& cursor, T size) noexcept
     {
         const auto capacity = cursor.bounds.end - cursor.bounds.begin;
 
@@ -268,9 +268,9 @@ public:
         return detail::bounded_cursor_dec_end(m_cursor, amount);
     }
 
-    constexpr void set_size(unit_type size) noexcept
+    constexpr void resize(unit_type size) noexcept
     {
-        detail::bounded_cursor_set_size(m_cursor, size);
+        detail::bounded_cursor_resize(m_cursor, size);
     }
 
     [[nodiscard]] constexpr bounds_type bounds() const noexcept
