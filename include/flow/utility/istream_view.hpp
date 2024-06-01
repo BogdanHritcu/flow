@@ -90,7 +90,7 @@ public:
 
     [[nodiscard]] pos_type tell()
     {
-        return m_in ? m_in->tellg() : 0;
+        return m_in ? m_in->tellg() : pos_type{ 0 };
     }
 
 private:
