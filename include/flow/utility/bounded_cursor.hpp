@@ -183,6 +183,12 @@ namespace detail {
     }
 
     template<std::unsigned_integral T>
+    [[nodiscard]] constexpr T bounded_cursor_size(const bounded_cursor<T>& cursor) noexcept
+    {
+        return cursor.bounds.end - cursor.bounds.begin;
+    }
+
+    template<std::unsigned_integral T>
     [[nodiscard]] constexpr bool bounded_cursor_is_valid(const bounded_cursor<T>& cursor) noexcept
     {
         return cursor.bounds.is_valid() && cursor.bounds.contains(cursor.position);
@@ -291,6 +297,11 @@ public:
     [[nodiscard]] constexpr unit_type end() const noexcept
     {
         return m_cursor.bounds.end;
+    }
+
+    [[nodiscard]] constexpr unit_type size() const noexcept
+    {
+        return detail::bounded_cursor_size(m_cursor);
     }
 
     [[nodiscard]] constexpr bool is_at_begin() const noexcept
