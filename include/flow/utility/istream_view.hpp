@@ -25,26 +25,32 @@ public:
     template<concepts::trivially_copyable T>
     istream_view& read(T& data)
     {
-        // NOLINTNEXTLINE(*-reinterpret-cast)
-        m_in->read(reinterpret_cast<char*>(&data), sizeof(data));
-
+        if (m_in)
+        {
+            // NOLINTNEXTLINE(*-reinterpret-cast)
+            m_in->read(reinterpret_cast<char*>(&data), sizeof(data));
+        }
         return *this;
     }
 
     template<concepts::trivially_copyable T>
     istream_view& read(std::span<T> span)
     {
-        // NOLINTNEXTLINE(*-reinterpret-cast)
-        m_in->read(reinterpret_cast<char*>(span.data()), span.size_bytes());
-
+        if (m_in)
+        {
+            // NOLINTNEXTLINE(*-reinterpret-cast)
+            m_in->read(reinterpret_cast<char*>(span.data()), span.size_bytes());
+        }
         return *this;
     }
 
     template<typename T, concepts::deserializer<T> DeserializerT>
     istream_view& deserialize(T& data, DeserializerT deserializer)
     {
-        std::invoke(deserializer, *this, data);
-
+        if (m_in)
+        {
+            std::invoke(deserializer, *this, data);
+        }
         return *this;
     }
 

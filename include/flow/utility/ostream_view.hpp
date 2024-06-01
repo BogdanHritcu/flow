@@ -26,26 +26,32 @@ public:
     template<concepts::trivially_copyable T>
     ostream_view& write(const T& data)
     {
-        // NOLINTNEXTLINE(*-reinterpret-cast)
-        m_out->write(reinterpret_cast<const char*>(&data), sizeof(data));
-
+        if (m_out)
+        {
+            // NOLINTNEXTLINE(*-reinterpret-cast)
+            m_out->write(reinterpret_cast<const char*>(&data), sizeof(data));
+        }
         return *this;
     }
 
     template<concepts::trivially_copyable T>
     ostream_view& write(std::span<const T> span)
     {
-        // NOLINTNEXTLINE(*-reinterpret-cast)
-        m_out->write(reinterpret_cast<const char*>(span.data()), span.size_bytes());
-
+        if (m_out)
+        {
+            // NOLINTNEXTLINE(*-reinterpret-cast)
+            m_out->write(reinterpret_cast<const char*>(span.data()), span.size_bytes());
+        }
         return *this;
     }
 
     template<typename T, concepts::serializer<T> SerializerT>
     ostream_view& serialize(const T& data, SerializerT serializer)
     {
-        std::invoke(serializer, *this, data);
-
+        if (m_out)
+        {
+            std::invoke(serializer, *this, data);
+        }
         return *this;
     }
 
