@@ -15,8 +15,12 @@ class ostream_view
 public:
     constexpr ostream_view() noexcept = default;
 
-    ostream_view(std::ostream& out) noexcept
-        : m_out{ &out }
+    constexpr ostream_view(std::ostream* out) noexcept
+        : m_out{ out }
+    {}
+
+    constexpr ostream_view(std::ostream& out) noexcept
+        : ostream_view(&out)
     {}
 
     template<concepts::trivially_copyable T>

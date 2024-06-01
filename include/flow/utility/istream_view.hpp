@@ -14,8 +14,12 @@ class istream_view
 public:
     constexpr istream_view() noexcept = default;
 
-    istream_view(std::istream& in) noexcept
-        : m_in{ &in }
+    constexpr istream_view(std::istream* in) noexcept
+        : m_in{ in }
+    {}
+
+    constexpr istream_view(std::istream& in) noexcept
+        : istream_view(&in)
     {}
 
     template<concepts::trivially_copyable T>
