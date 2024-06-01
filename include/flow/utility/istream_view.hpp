@@ -1,6 +1,7 @@
 #pragma once
 
 #include <functional>
+#include <ios>
 #include <istream>
 #include <span>
 
@@ -11,6 +12,15 @@ namespace flow {
 
 class istream_view
 {
+public:
+    using pos_type = std::istream::pos_type;
+    using off_type = std::istream::off_type;
+    using seekdir = std::istream::seekdir;
+
+    static constexpr auto begin = std::istream::beg;
+    static constexpr auto end = std::istream::end;
+    static constexpr auto current = std::istream::cur;
+
 public:
     constexpr istream_view() noexcept = default;
 
@@ -58,6 +68,29 @@ public:
     istream_view& deserialize(T& data)
     {
         return deserialize(data, deserializer<T, Traits>{});
+    }
+
+    istream_view& seek(pos_type position)
+    {
+        if (m_in)
+        {
+            m_in->seekg(position);
+        }
+        return *this;
+    }
+
+    istream_view& seek(off_type offset, seekdir direction)
+    {
+        if (m_in)
+        {
+            m_in->seekg(offset, direction);
+        }
+        return *this;
+    }
+
+    [[nodiscard]] pos_type tell()
+    {
+        return m_in ? m_in->tellg() : 0;
     }
 
 private:

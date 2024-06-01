@@ -12,6 +12,15 @@ namespace flow {
 class iostream_view
 {
 public:
+    using pos_type = std::iostream::pos_type;
+    using off_type = std::iostream::off_type;
+    using seekdir = std::iostream::seekdir;
+
+    static constexpr auto begin = std::iostream::beg;
+    static constexpr auto end = std::iostream::end;
+    static constexpr auto current = std::iostream::cur;
+
+public:
     constexpr iostream_view() noexcept = default;
 
     constexpr iostream_view(std::iostream* in_out) noexcept
@@ -80,6 +89,40 @@ public:
     iostream_view& deserialize(T& data)
     {
         return deserialize(data, deserializer<T, Traits>{});
+    }
+
+    iostream_view& seekg(pos_type position)
+    {
+        istream_view(m_in_out).seek(position);
+        return *this;
+    }
+
+    iostream_view& seekg(off_type offset, seekdir direction)
+    {
+        istream_view(m_in_out).seek(offset, direction);
+        return *this;
+    }
+
+    iostream_view& seekp(pos_type position)
+    {
+        ostream_view(m_in_out).seek(position);
+        return *this;
+    }
+
+    iostream_view& seekp(off_type offset, seekdir direction)
+    {
+        ostream_view(m_in_out).seek(offset, direction);
+        return *this;
+    }
+
+    [[nodiscard]] pos_type tellg()
+    {
+        return istream_view(m_in_out).tell();
+    }
+
+    [[nodiscard]] pos_type tellp()
+    {
+        return ostream_view(m_in_out).tell();
     }
 
     [[nodiscard]] constexpr operator istream_view() const noexcept

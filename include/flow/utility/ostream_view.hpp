@@ -13,6 +13,15 @@ namespace flow {
 class ostream_view
 {
 public:
+    using pos_type = std::ostream::pos_type;
+    using off_type = std::ostream::off_type;
+    using seekdir = std::ostream::seekdir;
+
+    static constexpr auto begin = std::ostream::beg;
+    static constexpr auto end = std::ostream::end;
+    static constexpr auto current = std::ostream::cur;
+
+public:
     constexpr ostream_view() noexcept = default;
 
     constexpr ostream_view(std::ostream* out) noexcept
@@ -59,6 +68,29 @@ public:
     ostream_view& serialize(const T& data)
     {
         return serialize(data, serializer<T, Traits>{});
+    }
+
+    ostream_view& seek(pos_type position)
+    {
+        if (m_out)
+        {
+            m_out->seekp(position);
+        }
+        return *this;
+    }
+
+    ostream_view& seek(off_type offset, seekdir direction)
+    {
+        if (m_out)
+        {
+            m_out->seekp(offset, direction);
+        }
+        return *this;
+    }
+
+    [[nodiscard]] pos_type tell()
+    {
+        return m_out ? m_out->tellp() : 0;
     }
 
 private:
