@@ -48,6 +48,16 @@ public:
         return m_sliding_window.backward(amount);
     }
 
+    constexpr size_type forward_inc(size_type amount) noexcept
+    {
+        return m_sliding_window.forward_inc(amount);
+    }
+
+    constexpr size_type backward_dec(size_type amount) noexcept
+    {
+        return m_sliding_window.backward_dec(amount);
+    }
+
     constexpr void set_position(size_type position) noexcept
     {
         m_sliding_window.seek(position);
