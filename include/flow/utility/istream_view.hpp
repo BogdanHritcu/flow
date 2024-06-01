@@ -106,27 +106,27 @@ public:
 
     [[nodiscard]] bool eof() const
     {
-        return m_in && m_in->eof();
+        return !m_in || m_in->eof();
     }
 
     [[nodiscard]] bool fail() const
     {
-        return m_in && m_in->fail();
+        return !m_in || m_in->fail();
     }
 
     [[nodiscard]] bool bad() const
     {
-        return m_in && m_in->bad();
+        return !m_in || m_in->bad();
     }
 
     [[nodiscard]] bool operator!() const
     {
-        return m_in && m_in->fail();
+        return fail();
     }
 
     [[nodiscard]] explicit operator bool() const
     {
-        return m_in && !m_in->fail();
+        return !fail();
     }
 
     void clear(iostate state = goodbit)
