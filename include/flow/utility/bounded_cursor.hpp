@@ -21,8 +21,8 @@ namespace detail {
     [[nodiscard]] constexpr bounded_cursor<T> make_bounded_cursor(T begin, T size, T position) noexcept
     {
         return bounded_cursor<T>{
-            .bounds{ begin, add_sat(begin + size) },
-            .position{ std::clamp(position, begin, add_sat(begin + size)) }
+            .bounds{ begin, add_sat(begin, size) },
+            .position{ std::clamp(position, begin, add_sat(begin, size)) }
         };
     }
 
@@ -30,7 +30,7 @@ namespace detail {
     [[nodiscard]] constexpr bounded_cursor<T> make_bounded_cursor(T begin, T size) noexcept
     {
         return bounded_cursor<T>{
-            .bounds{ begin, add_sat(begin + size) },
+            .bounds{ begin, add_sat(begin, size) },
             .position{ begin }
         };
     }
