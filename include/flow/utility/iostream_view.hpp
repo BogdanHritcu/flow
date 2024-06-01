@@ -12,7 +12,9 @@ namespace flow {
 class iostream_view
 {
 public:
-    iostream_view(std::iostream& in_out)
+    constexpr iostream_view() noexcept = default;
+
+    iostream_view(std::iostream& in_out) noexcept
         : m_in_out{ &in_out }
     {}
 
@@ -87,7 +89,7 @@ public:
     }
 
 private:
-    std::iostream* m_in_out;
+    std::iostream* m_in_out{ nullptr };
 };
 
 } // namespace flow

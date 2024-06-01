@@ -12,7 +12,9 @@ namespace flow {
 class istream_view
 {
 public:
-    istream_view(std::istream& in)
+    constexpr istream_view() noexcept = default;
+
+    istream_view(std::istream& in) noexcept
         : m_in{ &in }
     {}
 
@@ -49,7 +51,7 @@ public:
     }
 
 private:
-    std::istream* m_in;
+    std::istream* m_in{ nullptr };
 };
 
 template<concepts::trivially_copyable T, typename Traits>

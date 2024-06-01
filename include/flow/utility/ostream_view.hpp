@@ -13,7 +13,9 @@ namespace flow {
 class ostream_view
 {
 public:
-    ostream_view(std::ostream& out)
+    constexpr ostream_view() noexcept = default;
+
+    ostream_view(std::ostream& out) noexcept
         : m_out{ &out }
     {}
 
@@ -50,7 +52,7 @@ public:
     }
 
 private:
-    std::ostream* m_out;
+    std::ostream* m_out{ nullptr };
 };
 
 template<concepts::trivially_copyable T, typename Traits>
