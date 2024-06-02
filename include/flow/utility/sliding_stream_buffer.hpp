@@ -83,6 +83,11 @@ public:
         return m_sliding_window.bounds_end();
     }
 
+    [[nodiscard]] constexpr size_type bounds_size() const noexcept
+    {
+        return m_sliding_window.bounds_size();
+    }
+
     [[nodiscard]] constexpr std::span<value_type> values() noexcept
     {
         return m_buffer;
