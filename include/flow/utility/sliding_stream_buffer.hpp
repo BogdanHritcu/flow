@@ -21,41 +21,48 @@ public:
 public:
     constexpr sliding_stream_buffer() noexcept = default;
 
-    constexpr sliding_stream_buffer(size_type begin,
-                                    size_type size,
-                                    size_type window_size)
-        : m_sliding_window(begin, size, window_size)
+    constexpr sliding_stream_buffer(size_type stream_start_position,
+                                    size_type total_element_count,
+                                    size_type buffer_element_count)
+        : m_sliding_window(0,
+                           total_element_count,
+                           buffer_element_count)
+        , m_stream_start_position{ stream_start_position }
     {
         m_buffer.resize(m_sliding_window.size());
     }
 
-    constexpr sliding_stream_buffer(size_type begin,
-                                    size_type size,
-                                    size_type window_size,
-                                    size_type window_begin)
-        : m_sliding_window(begin, size, window_size, window_begin)
+    constexpr sliding_stream_buffer(size_type stream_start_position,
+                                    size_type total_element_count,
+                                    size_type buffer_element_count,
+                                    size_type buffer_begin_index)
+        : m_sliding_window(0,
+                           total_element_count,
+                           buffer_element_count,
+                           buffer_begin_index)
+        , m_stream_start_position{ stream_start_position }
     {
         m_buffer.resize(m_sliding_window.size());
     }
 
-    constexpr size_type forward(size_type amount) noexcept
+    constexpr size_type forward(size_type count) noexcept
     {
-        return m_sliding_window.forward(amount);
+        return m_sliding_window.forward(count);
     }
 
-    constexpr size_type backward(size_type amount) noexcept
+    constexpr size_type backward(size_type count) noexcept
     {
-        return m_sliding_window.backward(amount);
+        return m_sliding_window.backward(count);
     }
 
-    constexpr size_type forward_inc(size_type amount) noexcept
+    constexpr size_type forward_inc(size_type count) noexcept
     {
-        return m_sliding_window.forward_inc(amount);
+        return m_sliding_window.forward_inc(count);
     }
 
-    constexpr size_type backward_dec(size_type amount) noexcept
+    constexpr size_type backward_dec(size_type count) noexcept
     {
-        return m_sliding_window.backward_dec(amount);
+        return m_sliding_window.backward_dec(count);
     }
 
     constexpr void set_position(size_type position) noexcept
@@ -68,24 +75,34 @@ public:
         return m_buffer.size();
     }
 
+    [[nodiscard]] constexpr size_type size_bytes() const noexcept
+    {
+        return m_buffer.size() * sizeof(value_type);
+    }
+
     [[nodiscard]] constexpr size_type position() const noexcept
     {
         return m_sliding_window.position();
     }
 
-    [[nodiscard]] constexpr size_type bounds_begin() const noexcept
+    [[nodiscard]] constexpr size_type stream_position() const noexcept
     {
-        return m_sliding_window.bounds_begin();
+        return m_stream_start_position + m_sliding_window.position() * sizeof(value_type);
     }
 
-    [[nodiscard]] constexpr size_type bounds_end() const noexcept
+    [[nodiscard]] constexpr size_type stream_begin() const noexcept
     {
-        return m_sliding_window.bounds_end();
+        return m_stream_start_position;
     }
 
-    [[nodiscard]] constexpr size_type bounds_size() const noexcept
+    [[nodiscard]] constexpr size_type stream_end() const noexcept
     {
-        return m_sliding_window.bounds_size();
+        return m_stream_start_position + stream_size();
+    }
+
+    [[nodiscard]] constexpr size_type stream_size() const noexcept
+    {
+        return m_sliding_window.bounds_size() * sizeof(value_type);
     }
 
     [[nodiscard]] constexpr std::span<value_type> values() noexcept
@@ -104,21 +121,22 @@ public:
         m_buffer.resize(m_sliding_window.size());
     }
 
-    void load(istream_view in, size_type begin_offset = 0)
+    void load(istream_view in, size_type stream_byte_offset = 0)
     {
-        in.seek(m_sliding_window.position() + begin_offset);
-        in.read(m_buffer);
+        in.seek(stream_position() + stream_byte_offset);
+        in.read(values());
     }
 
-    void save(ostream_view out, size_type begin_offset = 0)
+    void save(ostream_view out, size_type stream_byte_offset = 0) const
     {
-        out.seek(m_sliding_window.position() + begin_offset);
-        out.write(m_buffer);
+        out.seek(stream_position() + stream_byte_offset);
+        out.write(values());
     }
 
 private:
     std::vector<value_type> m_buffer{};
     sliding_window<size_type> m_sliding_window{};
+    size_type m_stream_start_position{};
 };
 
 } // namespace flow
