@@ -73,6 +73,16 @@ public:
         return m_sliding_window.position();
     }
 
+    [[nodiscard]] constexpr size_type bounds_begin() const noexcept
+    {
+        return m_sliding_window.bounds_begin();
+    }
+
+    [[nodiscard]] constexpr size_type bounds_end() const noexcept
+    {
+        return m_sliding_window.bounds_end();
+    }
+
     [[nodiscard]] constexpr std::span<value_type> values() noexcept
     {
         return m_buffer;
