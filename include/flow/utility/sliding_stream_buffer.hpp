@@ -153,15 +153,15 @@ public:
         m_buffer.resize(m_sliding_window.size());
     }
 
-    void load(istream_view in, size_type stream_byte_offset = 0)
+    void load(istream_view in)
     {
-        in.seek(stream_begin() + stream_byte_offset);
+        in.seek(stream_begin());
         in.read(values());
     }
 
-    void save(ostream_view out, size_type stream_byte_offset = 0) const
+    void save(ostream_view out) const
     {
-        out.seek(stream_begin() + stream_byte_offset);
+        out.seek(stream_begin());
         out.write(values());
     }
 
