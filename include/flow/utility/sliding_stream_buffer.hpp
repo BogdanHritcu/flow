@@ -47,6 +47,36 @@ public:
         m_buffer.resize(m_sliding_window.size());
     }
 
+    constexpr void create(size_type stream_start_position,
+                          size_type element_begin_index,
+                          size_type element_count,
+                          size_type buffer_element_count)
+    {
+        m_stream_start_position = stream_start_position;
+
+        m_sliding_window = sliding_window(element_begin_index,
+                                          element_count,
+                                          buffer_element_count);
+
+        m_buffer.resize(m_sliding_window.size());
+    }
+
+    constexpr void create(size_type stream_start_position,
+                          size_type element_begin_index,
+                          size_type element_count,
+                          size_type buffer_element_count,
+                          size_type buffer_begin_index)
+    {
+        m_stream_start_position = stream_start_position;
+
+        m_sliding_window = sliding_window(element_begin_index,
+                                          element_count,
+                                          buffer_element_count,
+                                          buffer_begin_index);
+
+        m_buffer.resize(m_sliding_window.size());
+    }
+
     constexpr size_type forward(size_type count) noexcept
     {
         return m_sliding_window.forward(count);
