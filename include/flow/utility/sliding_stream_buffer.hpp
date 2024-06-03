@@ -22,10 +22,11 @@ public:
     constexpr sliding_stream_buffer() noexcept = default;
 
     constexpr sliding_stream_buffer(size_type stream_start_position,
-                                    size_type total_element_count,
+                                    size_type element_begin_index,
+                                    size_type element_count,
                                     size_type buffer_element_count)
-        : m_sliding_window(0,
-                           total_element_count,
+        : m_sliding_window(element_begin_index,
+                           element_count,
                            buffer_element_count)
         , m_stream_start_position{ stream_start_position }
     {
@@ -33,11 +34,12 @@ public:
     }
 
     constexpr sliding_stream_buffer(size_type stream_start_position,
-                                    size_type total_element_count,
+                                    size_type element_begin_index,
+                                    size_type element_count,
                                     size_type buffer_element_count,
                                     size_type buffer_begin_index)
-        : m_sliding_window(0,
-                           total_element_count,
+        : m_sliding_window(element_begin_index,
+                           element_count,
                            buffer_element_count,
                            buffer_begin_index)
         , m_stream_start_position{ stream_start_position }
@@ -70,39 +72,74 @@ public:
         m_sliding_window.seek(position);
     }
 
-    [[nodiscard]] constexpr size_type size() const noexcept
-    {
-        return m_buffer.size();
-    }
-
-    [[nodiscard]] constexpr size_type size_bytes() const noexcept
-    {
-        return m_buffer.size() * sizeof(value_type);
-    }
-
     [[nodiscard]] constexpr size_type position() const noexcept
     {
         return m_sliding_window.position();
     }
 
+    [[nodiscard]] constexpr size_type begin() const noexcept
+    {
+        return m_sliding_window.begin();
+    }
+
+    [[nodiscard]] constexpr size_type end() const noexcept
+    {
+        return m_sliding_window.end();
+    }
+
+    [[nodiscard]] constexpr size_type size() const noexcept
+    {
+        return m_sliding_window.size();
+    }
+
+    [[nodiscard]] constexpr size_type bounds_begin() const noexcept
+    {
+        return m_sliding_window.bounds_begin();
+    }
+
+    [[nodiscard]] constexpr size_type bounds_end() const noexcept
+    {
+        return m_sliding_window.bounds_end();
+    }
+
+    [[nodiscard]] constexpr size_type bounds_size() const noexcept
+    {
+        return m_sliding_window.bounds_size();
+    }
+
     [[nodiscard]] constexpr size_type stream_position() const noexcept
     {
-        return m_stream_start_position + m_sliding_window.position() * sizeof(value_type);
+        return m_stream_start_position + position() * sizeof(value_type);
     }
 
     [[nodiscard]] constexpr size_type stream_begin() const noexcept
     {
-        return m_stream_start_position;
+        return m_stream_start_position + begin() * sizeof(value_type);
     }
 
     [[nodiscard]] constexpr size_type stream_end() const noexcept
     {
-        return m_stream_start_position + stream_size();
+        return m_stream_start_position + end() * sizeof(value_type);
     }
 
     [[nodiscard]] constexpr size_type stream_size() const noexcept
     {
-        return m_sliding_window.bounds_size() * sizeof(value_type);
+        return size() * sizeof(value_type);
+    }
+
+    [[nodiscard]] constexpr size_type stream_bounds_begin() const noexcept
+    {
+        return m_stream_start_position + bounds_begin() * sizeof(value_type);
+    }
+
+    [[nodiscard]] constexpr size_type stream_bounds_end() const noexcept
+    {
+        return m_stream_start_position + bounds_end() * sizeof(value_type);
+    }
+
+    [[nodiscard]] constexpr size_type stream_bounds_size() const noexcept
+    {
+        return bounds_size() * sizeof(value_type);
     }
 
     [[nodiscard]] constexpr std::span<value_type> values() noexcept
