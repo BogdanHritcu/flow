@@ -1,5 +1,6 @@
 #pragma once
 
+#include <concepts>
 #include <cstddef>
 #include <span>
 #include <vector>
@@ -11,12 +12,12 @@
 
 namespace flow {
 
-template<concepts::trivially_copyable T>
+template<concepts::trivially_copyable T, std::unsigned_integral SizeT = std::size_t>
 class sliding_stream_buffer
 {
 public:
     using value_type = T;
-    using size_type = std::size_t;
+    using size_type = SizeT;
 
 public:
     constexpr sliding_stream_buffer() noexcept = default;
