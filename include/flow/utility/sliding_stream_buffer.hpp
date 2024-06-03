@@ -87,6 +87,11 @@ public:
         return m_sliding_window.size();
     }
 
+    [[nodiscard]] constexpr size_type loaded_size() const noexcept
+    {
+        return m_buffer.size();
+    }
+
     [[nodiscard]] constexpr size_type bounds_begin() const noexcept
     {
         return m_sliding_window.bounds_begin();
