@@ -23,10 +23,9 @@ public:
     constexpr sliding_stream_buffer() noexcept = default;
 
     constexpr sliding_stream_buffer(size_type stream_start_position,
-                                    size_type element_begin_index,
                                     size_type element_count,
                                     size_type buffer_element_count)
-        : m_sliding_window(element_begin_index,
+        : m_sliding_window(0,
                            element_count,
                            buffer_element_count)
         , m_stream_start_position{ stream_start_position }
@@ -35,11 +34,10 @@ public:
     }
 
     constexpr sliding_stream_buffer(size_type stream_start_position,
-                                    size_type element_begin_index,
                                     size_type element_count,
                                     size_type buffer_element_count,
                                     size_type buffer_begin_index)
-        : m_sliding_window(element_begin_index,
+        : m_sliding_window(0,
                            element_count,
                            buffer_element_count,
                            buffer_begin_index)
@@ -49,13 +47,12 @@ public:
     }
 
     constexpr void create(size_type stream_start_position,
-                          size_type element_begin_index,
                           size_type element_count,
                           size_type buffer_element_count)
     {
         m_stream_start_position = stream_start_position;
 
-        m_sliding_window = sliding_window(element_begin_index,
+        m_sliding_window = sliding_window(0,
                                           element_count,
                                           buffer_element_count);
 
@@ -63,14 +60,13 @@ public:
     }
 
     constexpr void create(size_type stream_start_position,
-                          size_type element_begin_index,
                           size_type element_count,
                           size_type buffer_element_count,
                           size_type buffer_begin_index)
     {
         m_stream_start_position = stream_start_position;
 
-        m_sliding_window = sliding_window(element_begin_index,
+        m_sliding_window = sliding_window(0,
                                           element_count,
                                           buffer_element_count,
                                           buffer_begin_index);
