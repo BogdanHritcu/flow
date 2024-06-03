@@ -50,6 +50,17 @@ public:
     }
 
     template<concepts::trivially_copyable T>
+    ostream_view& write(std::span<T> span)
+    {
+        if (good())
+        {
+            // NOLINTNEXTLINE(*-reinterpret-cast)
+            m_out->write(reinterpret_cast<const char*>(span.data()), span.size_bytes());
+        }
+        return *this;
+    }
+
+    template<concepts::trivially_copyable T>
     ostream_view& write(std::span<const T> span)
     {
         if (good())

@@ -62,6 +62,14 @@ public:
     }
 
     template<concepts::trivially_copyable T>
+    iostream_view& write(std::span<T> span)
+    {
+        ostream_view(m_in_out).write(span);
+
+        return *this;
+    }
+
+    template<concepts::trivially_copyable T>
     iostream_view& write(std::span<const T> span)
     {
         ostream_view(m_in_out).write(span);
