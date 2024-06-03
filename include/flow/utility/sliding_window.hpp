@@ -126,7 +126,7 @@ namespace detail {
     template<std::unsigned_integral T>
     [[nodiscard]] constexpr T sliding_window_bounds_size(const sliding_window<T>& window) noexcept
     {
-        return detail::bounded_cursor_size(window.cursor);
+        return window.cursor.bounds.end + window.size - window.cursor.bounds.begin;
     }
 
     template<std::unsigned_integral T>
@@ -139,13 +139,6 @@ namespace detail {
     [[nodiscard]] constexpr bool sliding_window_is_at_end(const sliding_window<T>& window) noexcept
     {
         return detail::bounded_cursor_is_at_end(window.cursor);
-    }
-
-    template<std::unsigned_integral T>
-    [[nodiscard]] constexpr bool sliding_window_is_valid(const sliding_window<T>& window) noexcept
-    {
-        return detail::bounded_cursor_is_valid(window.cursor)
-            && window.size <= window.cursor.bounds.end - window.cursor.position;
     }
 
 } // namespace detail
@@ -230,7 +223,7 @@ public:
 
     [[nodiscard]] constexpr unit_type begin() const noexcept
     {
-        return m_window.cursor.bounds.begin;
+        return m_window.cursor.position;
     }
 
     [[nodiscard]] constexpr unit_type end() const noexcept
@@ -238,9 +231,9 @@ public:
         return m_window.cursor.position + m_window.size;
     }
 
-    [[nodiscard]] constexpr unit_type position() const noexcept
+    [[nodiscard]] constexpr unit_type size() const noexcept
     {
-        return m_window.cursor.position;
+        return m_window.size;
     }
 
     [[nodiscard]] constexpr unit_type bounds_begin() const noexcept
@@ -253,14 +246,9 @@ public:
         return m_window.cursor.bounds.end + m_window.size;
     }
 
-    [[nodiscard]] constexpr unit_type size() const noexcept
-    {
-        return m_window.size;
-    }
-
     [[nodiscard]] constexpr unit_type bounds_size() const noexcept
     {
-        return detail::sliding_window_bounds_size(m_window);
+        return bounds_end() - bounds_begin();
     }
 
     [[nodiscard]] constexpr bool is_at_begin() const noexcept

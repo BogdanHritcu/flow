@@ -67,14 +67,9 @@ public:
         return m_sliding_window.backward_dec(count);
     }
 
-    constexpr void set_position(size_type position) noexcept
+    constexpr void set_begin(size_type position) noexcept
     {
         m_sliding_window.seek(position);
-    }
-
-    [[nodiscard]] constexpr size_type position() const noexcept
-    {
-        return m_sliding_window.position();
     }
 
     [[nodiscard]] constexpr size_type begin() const noexcept
@@ -107,11 +102,6 @@ public:
         return m_sliding_window.bounds_size();
     }
 
-    [[nodiscard]] constexpr size_type stream_position() const noexcept
-    {
-        return m_stream_start_position + position() * sizeof(value_type);
-    }
-
     [[nodiscard]] constexpr size_type stream_begin() const noexcept
     {
         return m_stream_start_position + begin() * sizeof(value_type);
@@ -129,12 +119,12 @@ public:
 
     [[nodiscard]] constexpr size_type stream_bounds_begin() const noexcept
     {
-        return m_stream_start_position + bounds_begin() * sizeof(value_type);
+        return m_stream_start_position;
     }
 
     [[nodiscard]] constexpr size_type stream_bounds_end() const noexcept
     {
-        return m_stream_start_position + bounds_end() * sizeof(value_type);
+        return m_stream_start_position + stream_bounds_size();
     }
 
     [[nodiscard]] constexpr size_type stream_bounds_size() const noexcept
@@ -160,13 +150,13 @@ public:
 
     void load(istream_view in, size_type stream_byte_offset = 0)
     {
-        in.seek(stream_position() + stream_byte_offset);
+        in.seek(stream_begin() + stream_byte_offset);
         in.read(values());
     }
 
     void save(ostream_view out, size_type stream_byte_offset = 0) const
     {
-        out.seek(stream_position() + stream_byte_offset);
+        out.seek(stream_begin() + stream_byte_offset);
         out.write(values());
     }
 
