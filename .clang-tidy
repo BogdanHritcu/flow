@@ -2,6 +2,7 @@ Checks:
   bugprone-*,
   concurrency-*,
   cppcoreguidelines-*,
+  -cppcoreguidelines-pro-type-union-access,
   misc-*,
   modernize-*,
   -modernize-use-trailing-return-type,
