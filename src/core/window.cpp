@@ -8,8 +8,8 @@
 #include <glad/gl.h>
 
 #include "../../include/flow/core/logger.hpp"
-#include "../../include/flow/input/input_binding.hpp"
-#include "../../include/flow/input/input_enums.hpp"
+#include "../../include/flow/input/binding.hpp"
+#include "../../include/flow/input/binding_enums.hpp"
 
 namespace flow {
 
@@ -164,12 +164,12 @@ void window::set_key_callback() noexcept
             return;
         }
 
-        input_binding bind = make_binding(detail::add_code_flag<key_code>(
-                                              static_cast<detail::input_code_underlying_type>(code)),
-                                          static_cast<input_action_code>(action),
-                                          static_cast<input_modifier_code>(mod));
+        binding bind = make_binding(detail::add_code_flag<key_code>(
+                                        static_cast<detail::binding_code_underlying_type>(code)),
+                                    static_cast<binding_action_code>(action),
+                                    static_cast<binding_modifier_code>(mod));
 
-        data->engine->m_input->invoke_callbacks(bind, *data->engine);
+        data->engine->m_input->invoke_binding_callbacks(bind, *data->engine);
     };
 
     glfwSetKeyCallback(m_handle.get(), adaptor_callback);
@@ -192,12 +192,12 @@ void window::set_mouse_button_callback() noexcept
             return;
         }
 
-        input_binding bind = make_binding(detail::add_code_flag<mbtn_code>(
-                                              static_cast<detail::input_code_underlying_type>(code)),
-                                          static_cast<input_action_code>(action),
-                                          static_cast<input_modifier_code>(mod));
+        binding bind = make_binding(detail::add_code_flag<mbtn_code>(
+                                        static_cast<detail::binding_code_underlying_type>(code)),
+                                    static_cast<binding_action_code>(action),
+                                    static_cast<binding_modifier_code>(mod));
 
-        data->engine->m_input->invoke_callbacks(bind, *data->engine);
+        data->engine->m_input->invoke_binding_callbacks(bind, *data->engine);
     };
 
     glfwSetMouseButtonCallback(m_handle.get(), adaptor_callback);

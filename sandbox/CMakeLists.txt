@@ -11,7 +11,7 @@ add_executable(sandbox)
 
 set(SANDBOX_SOURCES "src/entry.cpp")
 
-set(SANDBOX_HEADERS "src/tests/input_context_test.hpp"
+set(SANDBOX_HEADERS "src/tests/input_system_test.hpp"
                     "src/tests/textured_quads_test.hpp"
                     "src/tests/utility_test.hpp")
 
