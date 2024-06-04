@@ -12,6 +12,8 @@ namespace flow {
 class input_binding
 {
 public:
+    constexpr input_binding() noexcept = default;
+
     template<concepts::input_code T>
     constexpr input_binding(T code,
                             input_action_code action,
@@ -80,9 +82,9 @@ public:
     operator==(input_binding, input_binding) noexcept = default;
 
 private:
-    input_code m_code;
-    input_action_code m_action;
-    input_modifier_code m_mod;
+    input_code m_code{};
+    input_action_code m_action{};
+    input_modifier_code m_mod{};
 };
 
 template<concepts::input_code T, typename... Args>
