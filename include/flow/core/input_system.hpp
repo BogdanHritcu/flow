@@ -7,11 +7,10 @@
 #include <utility>
 #include <vector>
 
-#include <glm/vec2.hpp>
-
 #include "../input/binding.hpp"
 #include "../input/binding_context.hpp"
 #include "../input/binding_enums.hpp"
+#include "../input/input_context.hpp"
 #include "../utility/helpers.hpp"
 
 namespace flow {
@@ -32,14 +31,6 @@ public:
     using index_type = std::uint64_t;
     using binding_callback_type = std::function<void(engine_interface)>;
     using binding_context_type = binding_context<binding_callback_type, index_type>;
-
-    struct input_context
-    {
-        binding last_binding_triggered{};
-        binding last_key_binding_triggered{};
-        binding last_mouse_binding_triggered{};
-        glm::vec2 last_cursor_position{};
-    };
 
 public:
     bool register_binding_callback(std::string_view name, const binding_callback_type& callback)
@@ -182,16 +173,6 @@ public:
         return m_binding_contexts[*context_index].get_bindings(*callback_index);
     }
 
-    [[nodiscard]] constexpr input_context& context() noexcept
-    {
-        return m_input_context;
-    }
-
-    [[nodiscard]] constexpr const input_context& context() const noexcept
-    {
-        return m_input_context;
-    }
-
     template<typename... Args>
     void invoke_binding_callbacks(binding bind, Args... args) const
     {
@@ -203,7 +184,7 @@ public:
 
             if (!match)
             {
-                auto any_bind = make_binding(detail::to_any_code(bind.code()),
+                auto any_bind = make_binding(detail::binding_code_to_any(bind.code()),
                                              bind.action(),
                                              bind.mod());
                 callback_index = m_binding_contexts[handle.index].get_callback_index(any_bind);
@@ -238,6 +219,16 @@ public:
         }
     }
 
+    [[nodiscard]] constexpr input_context& context() noexcept
+    {
+        return m_input_context;
+    }
+
+    [[nodiscard]] constexpr const input_context& context() const noexcept
+    {
+        return m_input_context;
+    }
+
 private:
     [[nodiscard]] std::optional<index_type> get_binding_callback_index(std::string_view name) const
     {
@@ -262,20 +253,20 @@ private:
 private:
     struct binding_context_handle
     {
-        void* user_ptr;
-        index_type index;
-        fallthrough_mode fallthrough;
+        void* user_ptr{};
+        index_type index{};
+        fallthrough_mode fallthrough{};
     };
 
-    std::vector<binding_callback_type> m_binding_callbacks;
-    unordered_string_map<index_type> m_binding_callback_name_map;
+    std::vector<binding_callback_type> m_binding_callbacks{};
+    unordered_string_map<index_type> m_binding_callback_name_map{};
 
-    std::vector<binding_context_type> m_binding_contexts;
-    unordered_string_map<index_type> m_binding_context_name_map;
+    std::vector<binding_context_type> m_binding_contexts{};
+    unordered_string_map<index_type> m_binding_context_name_map{};
 
-    std::vector<binding_context_handle> m_binding_context_handle_stack;
+    std::vector<binding_context_handle> m_binding_context_handle_stack{};
 
-    input_context m_input_context;
+    input_context m_input_context{};
 };
 
 } // namespace flow

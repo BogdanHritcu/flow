@@ -56,6 +56,12 @@ public:
         return m_code;
     }
 
+    template<concepts::binding_code T>
+    [[nodiscard]] constexpr T code_as() const noexcept
+    {
+        return detail::binding_code_cast<T>(m_code);
+    }
+
     [[nodiscard]] constexpr binding_action_code action() const noexcept
     {
         return m_action;
@@ -69,13 +75,13 @@ public:
     template<concepts::binding_code T>
     [[nodiscard]] constexpr bool is() const noexcept
     {
-        return detail::is_code_type<T>(m_code);
+        return detail::is_binding_code_type<T>(m_code);
     }
 
     template<concepts::binding_code T>
     [[nodiscard]] constexpr bool is_any() const noexcept
     {
-        return detail::is_code_any<T>(m_code);
+        return detail::is_binding_code_any<T>(m_code);
     }
 
     [[nodiscard]] friend constexpr bool

@@ -1,5 +1,4 @@
 #include "../../include/flow/core/window.hpp"
-#include "include/flow/core/engine_interface.hpp"
 
 #include <string_view>
 
@@ -7,6 +6,7 @@
 #include <GLFW/glfw3.h>
 #include <glad/gl.h>
 
+#include "../../include/flow/core/engine_interface.hpp"
 #include "../../include/flow/core/logger.hpp"
 #include "../../include/flow/input/binding.hpp"
 #include "../../include/flow/input/binding_enums.hpp"
@@ -150,6 +150,11 @@ void window::set_callbacks() noexcept
 
 void window::set_key_callback() noexcept
 {
+    if (m_window_data.engine && m_window_data.engine->m_input)
+    {
+        m_window_data.engine->m_input->context().reset_input_context_state<key_code>();
+    }
+
     // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
     auto adaptor_callback = [](GLFWwindow* glfw_window, int code, int /*scancode*/, int action, int mod) -> void
     {
@@ -164,15 +169,14 @@ void window::set_key_callback() noexcept
         {
             return;
         }
+        auto* input_system = data->engine->m_input;
 
-        binding bind = make_binding(detail::add_code_flag<key_code>(
+        binding bind = make_binding(detail::add_binding_code_flag<key_code>(
                                         static_cast<detail::binding_code_underlying_type>(code)),
                                     static_cast<binding_action_code>(action),
                                     static_cast<binding_modifier_code>(mod));
 
-        auto* input_system = data->engine->m_input;
-        input_system->context().last_key_binding_triggered = bind;
-        input_system->context().last_binding_triggered = bind;
+        input_system->context().set_input_context_state<key_code>(bind);
         input_system->invoke_binding_callbacks(bind, *data->engine);
     };
 
@@ -181,6 +185,11 @@ void window::set_key_callback() noexcept
 
 void window::set_mouse_button_callback() noexcept
 {
+    if (m_window_data.engine && m_window_data.engine->m_input)
+    {
+        m_window_data.engine->m_input->context().reset_input_context_state<mouse_code>();
+    }
+
     // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
     auto adaptor_callback = [](GLFWwindow* glfw_window, int code, int action, int mod) -> void
     {
@@ -195,15 +204,14 @@ void window::set_mouse_button_callback() noexcept
         {
             return;
         }
+        auto* input_system = data->engine->m_input;
 
-        binding bind = make_binding(detail::add_code_flag<mouse_code>(
+        binding bind = make_binding(detail::add_binding_code_flag<mouse_code>(
                                         static_cast<detail::binding_code_underlying_type>(code)),
                                     static_cast<binding_action_code>(action),
                                     static_cast<binding_modifier_code>(mod));
 
-        auto* input_system = data->engine->m_input;
-        input_system->context().last_mouse_binding_triggered = bind;
-        input_system->context().last_binding_triggered = bind;
+        input_system->context().set_input_context_state<mouse_code>(bind);
         input_system->invoke_binding_callbacks(bind, *data->engine);
     };
 
@@ -212,6 +220,11 @@ void window::set_mouse_button_callback() noexcept
 
 void window::set_cursor_position_callback() noexcept
 {
+    if (m_window_data.engine && m_window_data.engine->m_input)
+    {
+        m_window_data.engine->m_input->context().reset_cursor_state();
+    }
+
     // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
     auto adaptor_callback = [](GLFWwindow* glfw_window, double x, double y) -> void
     {
@@ -221,8 +234,9 @@ void window::set_cursor_position_callback() noexcept
         {
             return;
         }
+        auto* input_system = data->engine->m_input;
 
-        data->engine->m_input->context().last_cursor_position = { static_cast<float>(x), static_cast<float>(y) };
+        input_system->context().set_cursor_state({ static_cast<float>(x), static_cast<float>(y) });
     };
 
     glfwSetCursorPosCallback(m_handle.get(), adaptor_callback);

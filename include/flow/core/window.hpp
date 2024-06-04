@@ -48,9 +48,7 @@ public:
 
 public:
     constexpr window() noexcept
-        : m_handle{}
-        , m_window_data{}
-        , m_settings{ default_settings }
+        : m_settings{ default_settings }
     {}
 
     window(engine_interface* engine, const settings& settings) noexcept;
@@ -96,13 +94,13 @@ private:
 private:
     struct window_data
     {
-        engine_interface* engine;
+        engine_interface* engine{};
     };
 
 private:
-    handle_type m_handle;
-    window_data m_window_data;
-    settings m_settings;
+    handle_type m_handle{};
+    window_data m_window_data{};
+    settings m_settings{};
 };
 
 } // namespace flow

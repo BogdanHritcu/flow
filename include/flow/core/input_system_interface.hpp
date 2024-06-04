@@ -13,7 +13,6 @@ class input_system_interface
 public:
     using index_type = input_system::index_type;
     using binding_callback_type = input_system::binding_callback_type;
-    using input_context_type = input_system::input_context;
 
     // clang-format off
 
@@ -27,11 +26,9 @@ public:
     static constexpr auto any = binding_code::any;
 
 public:
-    constexpr input_system_interface()
-        : m_input_system{}
-    {}
+    constexpr input_system_interface() noexcept = default;
 
-    constexpr input_system_interface(input_system& input_system)
+    constexpr input_system_interface(input_system& input_system) noexcept
         : m_input_system{ &input_system }
     {}
 
@@ -102,13 +99,58 @@ public:
         return m_input_system->get_bindings(callback_name, context_name);
     }
 
-    [[nodiscard]] constexpr const input_context_type& context() const noexcept
+    template<concepts::binding_code T>
+    [[nodiscard]] constexpr const binding& last_triggered() const noexcept
     {
-        return m_input_system->context();
+        return m_input_system->context().get_last_triggered<T>();
+    }
+
+    template<concepts::binding_code T>
+    [[nodiscard]] constexpr const T& last_pressed() const noexcept
+    {
+        return m_input_system->context().get_last_pressed<T>();
+    }
+
+    template<concepts::binding_code T>
+    [[nodiscard]] constexpr const T& last_released() const noexcept
+    {
+        return m_input_system->context().get_last_released<T>();
+    }
+
+    template<concepts::binding_code T>
+    [[nodiscard]] constexpr std::size_t pressed_count() const noexcept
+    {
+        return m_input_system->context().get_pressed_count<T>();
+    }
+
+    [[nodiscard]] constexpr const glm::vec2& cursor_position() const noexcept
+    {
+        return m_input_system->context().get_cursor_position();
+    }
+
+    [[nodiscard]] constexpr const glm::vec2& previous_cursor_position() const noexcept
+    {
+        return m_input_system->context().get_previous_cursor_position();
+    }
+
+    template<concepts::binding_code T>
+    [[nodiscard]] constexpr bool is_pressed(T code) const noexcept
+    {
+        if constexpr (std::same_as<T, binding_code>)
+        {
+            return (detail::is_binding_code_any<binding_code>(code) && pressed_count<binding_code>() > 0)
+                || (detail::is_binding_code_type<key_code>(code) && is_pressed(detail::binding_code_cast<key_code>(code)))
+                || (detail::is_binding_code_type<mouse_code>(code) && is_pressed(detail::binding_code_cast<mouse_code>(code)));
+        }
+        else
+        {
+            return (detail::is_binding_code_any<T>(code) && pressed_count<T>() > 0)
+                || m_input_system->context().get_binding_code_state(code) != binding_action_code::release;
+        }
     }
 
 private:
-    input_system* m_input_system;
+    input_system* m_input_system{};
 };
 
 } // namespace flow

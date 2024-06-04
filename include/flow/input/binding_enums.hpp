@@ -38,6 +38,8 @@ namespace detail {
     template<>
     inline constexpr binding_code_underlying_type binding_code_flag<binding_code> = binding_code_flag<key_code>
                                                                                   | binding_code_flag<mouse_code>;
+    template<concepts::binding_code T>
+    inline constexpr T binding_code_non_any_max{};
 
 } // namespace detail
 
@@ -177,6 +179,11 @@ enum class key_code : detail::binding_code_underlying_type
                   | detail::binding_code_any_flag,
 };
 
+namespace detail {
+    template<>
+    inline constexpr auto binding_code_non_any_max<key_code> = key_code::menu;
+}
+
 enum class mouse_code : detail::binding_code_underlying_type
 {
     b1       = detail::binding_code_flag<mouse_code> | 0,
@@ -194,6 +201,11 @@ enum class mouse_code : detail::binding_code_underlying_type
     any      = detail::binding_code_flag<mouse_code>
              | detail::binding_code_any_flag,
 };
+
+namespace detail {
+    template<>
+    inline constexpr auto binding_code_non_any_max<mouse_code> = mouse_code::b8;
+}
 
 enum class binding_action_code : detail::binding_action_code_underlying_type
 {
@@ -224,44 +236,64 @@ enum class binding_modifier_code : detail::binding_modifier_code_underlying_type
 
 namespace detail {
     template<concepts::binding_code T>
-    [[nodiscard]] constexpr bool is_code_type(binding_code code) noexcept
+    [[nodiscard]] constexpr bool is_binding_code_type(binding_code code) noexcept
     {
         return static_cast<binding_code_underlying_type>(code) & binding_code_flag<T>;
     }
 
     template<concepts::binding_code T>
-    [[nodiscard]] constexpr bool is_code_any(binding_code code) noexcept
+    [[nodiscard]] constexpr bool is_binding_code_any(T code) noexcept
     {
-        return static_cast<binding_code_underlying_type>(code)
-             & binding_code_flag<T>
-             & binding_code_any_flag;
+        if constexpr (std::same_as<T, binding_code>)
+        {
+            return static_cast<binding_code_underlying_type>(code)
+                 & binding_code_any_flag;
+        }
+        else
+        {
+            return static_cast<binding_code_underlying_type>(code)
+                 & binding_code_flag<T>
+                 & binding_code_any_flag;
+        }
     }
 
     template<concepts::binding_code T>
-    [[nodiscard]] constexpr T add_code_flag(binding_code_underlying_type code) noexcept
+    [[nodiscard]] constexpr T add_binding_code_flag(binding_code_underlying_type code) noexcept
     {
         return static_cast<T>(code | binding_code_flag<T>);
     }
 
     template<concepts::binding_code T>
-    [[nodiscard]] constexpr T add_any_flag(T code) noexcept
+    [[nodiscard]] constexpr binding_code_underlying_type remove_binding_code_flag(T code) noexcept
+    {
+        return static_cast<binding_code_underlying_type>(code) & ~binding_code_flag<T>;
+    }
+
+    template<concepts::binding_code T>
+    [[nodiscard]] constexpr T add_binding_code_any_flag(T code) noexcept
     {
         return static_cast<T>(static_cast<binding_code_underlying_type>(code)
                               | binding_code_any_flag);
     }
 
     template<concepts::binding_code T>
-    [[nodiscard]] constexpr T remove_any_flag(T code) noexcept
+    [[nodiscard]] constexpr T remove_binding_code_any_flag(T code) noexcept
     {
         return static_cast<T>(static_cast<binding_code_underlying_type>(code)
-                              | ~binding_code_any_flag);
+                              & ~binding_code_any_flag);
     }
 
     template<concepts::binding_code T>
-    [[nodiscard]] constexpr T to_any_code(T code) noexcept
+    [[nodiscard]] constexpr T binding_code_to_any(T code) noexcept
     {
         return static_cast<T>((static_cast<binding_code_underlying_type>(code) & binding_code_flag<T>)
                               | binding_code_any_flag);
+    }
+
+    template<concepts::binding_code T>
+    [[nodiscard]] constexpr T binding_code_cast(binding_code code) noexcept
+    {
+        return static_cast<T>(static_cast<binding_code_underlying_type>(code));
     }
 
 } // namespace detail

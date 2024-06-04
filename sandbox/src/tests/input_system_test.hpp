@@ -71,9 +71,12 @@ public:
             FLOW_LOG_INFO("jumped {}m", m_jump_height); // NOLINT
         };
 
-        auto callback_attack = [&](flow::engine_interface /*engine*/) -> void
+        auto callback_attack = [&](flow::engine_interface engine) -> void
         {
-            FLOW_LOG_INFO("attacked (normal: {}dmg)", m_attack_damage); // NOLINT
+            FLOW_LOG_INFO("attacked at ({}, {}) (normal: {}dmg)", // NOLINT
+                          engine.input.cursor_position().x,
+                          engine.input.cursor_position().y,
+                          m_attack_damage);
         };
 
         auto callback_special_attack = [&](flow::engine_interface /*engine*/) -> void
@@ -81,14 +84,28 @@ public:
             FLOW_LOG_INFO("attacked (special: {}dmg)", m_attack_damage * 3.0f); // NOLINT
         };
 
-        auto callback_move_left = [](flow::engine_interface /*engine*/) -> void
+        auto callback_move_left = [](flow::engine_interface engine) -> void
         {
-            FLOW_LOG_INFO("moved left"); // NOLINT
+            if (engine.input.is_pressed(engine.key.d))
+            {
+                FLOW_LOG_INFO("could not move left"); // NOLINT
+            }
+            else
+            {
+                FLOW_LOG_INFO("moved left"); // NOLINT
+            }
         };
 
-        auto callback_move_right = [](flow::engine_interface /*engine*/) -> void
+        auto callback_move_right = [](flow::engine_interface engine) -> void
         {
-            FLOW_LOG_INFO("moved right"); // NOLINT
+            if (engine.input.is_pressed(engine.key.a))
+            {
+                FLOW_LOG_INFO("could not move right"); // NOLINT
+            }
+            else
+            {
+                FLOW_LOG_INFO("moved right"); // NOLINT
+            }
         };
 
         // input contexts registration
