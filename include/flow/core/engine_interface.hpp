@@ -9,7 +9,7 @@ class engine_interface
 {
 public:
     static constexpr auto key = input_system_interface::key;
-    static constexpr auto mbtn = input_system_interface::mbtn;
+    static constexpr auto mouse = input_system_interface::mouse;
     static constexpr auto action = input_system_interface::action;
     static constexpr auto mod = input_system_interface::mod;
 

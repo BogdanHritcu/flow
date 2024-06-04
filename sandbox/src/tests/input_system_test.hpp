@@ -147,7 +147,7 @@ public:
                                       context_gameplay);
 
         engine.input.register_binding(flow::binding{
-                                          engine.mbtn.left,
+                                          engine.mouse.left,
                                           engine.action.press,
                                           engine.mod.none,
                                       },
@@ -155,7 +155,7 @@ public:
                                       context_gameplay);
 
         engine.input.register_binding(flow::binding{
-                                          engine.mbtn.left,
+                                          engine.mouse.left,
                                           engine.action.press,
                                           engine.mod.control | engine.mod.alt,
                                       },

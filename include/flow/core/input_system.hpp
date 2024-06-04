@@ -37,7 +37,7 @@ public:
     {
         binding last_binding_triggered{};
         binding last_key_binding_triggered{};
-        binding last_mbtn_binding_triggered{};
+        binding last_mouse_binding_triggered{};
         glm::vec2 last_cursor_position{};
     };
 

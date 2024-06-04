@@ -196,13 +196,13 @@ void window::set_mouse_button_callback() noexcept
             return;
         }
 
-        binding bind = make_binding(detail::add_code_flag<mbtn_code>(
+        binding bind = make_binding(detail::add_code_flag<mouse_code>(
                                         static_cast<detail::binding_code_underlying_type>(code)),
                                     static_cast<binding_action_code>(action),
                                     static_cast<binding_modifier_code>(mod));
 
         auto* input_system = data->engine->m_input;
-        input_system->context().last_mbtn_binding_triggered = bind;
+        input_system->context().last_mouse_binding_triggered = bind;
         input_system->context().last_binding_triggered = bind;
         input_system->invoke_binding_callbacks(bind, *data->engine);
     };

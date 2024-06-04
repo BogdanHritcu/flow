@@ -14,13 +14,13 @@ namespace detail {
 
 enum class binding_code : detail::binding_code_underlying_type;
 enum class key_code : detail::binding_code_underlying_type;
-enum class mbtn_code : detail::binding_code_underlying_type;
+enum class mouse_code : detail::binding_code_underlying_type;
 enum class binding_action_code : detail::binding_action_code_underlying_type;
 enum class binding_modifier_code : detail::binding_modifier_code_underlying_type;
 
 namespace concepts {
     template<typename T>
-    concept binding_code = concepts::any_of<T, binding_code, key_code, mbtn_code>;
+    concept binding_code = concepts::any_of<T, binding_code, key_code, mouse_code>;
 }
 
 namespace detail {
@@ -33,11 +33,11 @@ namespace detail {
     inline constexpr binding_code_underlying_type binding_code_flag<key_code> = binding_code_underlying_type{ 1 } << 14;
 
     template<>
-    inline constexpr binding_code_underlying_type binding_code_flag<mbtn_code> = binding_code_underlying_type{ 1 } << 13;
+    inline constexpr binding_code_underlying_type binding_code_flag<mouse_code> = binding_code_underlying_type{ 1 } << 13;
 
     template<>
     inline constexpr binding_code_underlying_type binding_code_flag<binding_code> = binding_code_flag<key_code>
-                                                                                  | binding_code_flag<mbtn_code>;
+                                                                                  | binding_code_flag<mouse_code>;
 
 } // namespace detail
 
@@ -46,7 +46,7 @@ namespace detail {
 enum class binding_code : detail::binding_code_underlying_type
 {
     any = detail::binding_code_flag<key_code>
-        | detail::binding_code_flag<mbtn_code>
+        | detail::binding_code_flag<mouse_code>
         | detail::binding_code_any_flag
 };
 
@@ -177,21 +177,21 @@ enum class key_code : detail::binding_code_underlying_type
                   | detail::binding_code_any_flag,
 };
 
-enum class mbtn_code : detail::binding_code_underlying_type
+enum class mouse_code : detail::binding_code_underlying_type
 {
-    b1       = detail::binding_code_flag<mbtn_code> | 0,
-    b2       = detail::binding_code_flag<mbtn_code> | 1,
-    b3       = detail::binding_code_flag<mbtn_code> | 2,
-    b4       = detail::binding_code_flag<mbtn_code> | 3,
-    b5       = detail::binding_code_flag<mbtn_code> | 4,
-    b6       = detail::binding_code_flag<mbtn_code> | 5,
-    b7       = detail::binding_code_flag<mbtn_code> | 6,
-    b8       = detail::binding_code_flag<mbtn_code> | 7,
+    b1       = detail::binding_code_flag<mouse_code> | 0,
+    b2       = detail::binding_code_flag<mouse_code> | 1,
+    b3       = detail::binding_code_flag<mouse_code> | 2,
+    b4       = detail::binding_code_flag<mouse_code> | 3,
+    b5       = detail::binding_code_flag<mouse_code> | 4,
+    b6       = detail::binding_code_flag<mouse_code> | 5,
+    b7       = detail::binding_code_flag<mouse_code> | 6,
+    b8       = detail::binding_code_flag<mouse_code> | 7,
     left     = b1,
     right    = b2,
     middle   = b3,
 
-    any      = detail::binding_code_flag<mbtn_code>
+    any      = detail::binding_code_flag<mouse_code>
              | detail::binding_code_any_flag,
 };
 

@@ -18,7 +18,7 @@ public:
     // clang-format off
 
     static constexpr struct { using enum key_code;            } key;
-    static constexpr struct { using enum mbtn_code;           } mbtn;
+    static constexpr struct { using enum mouse_code;           } mouse;
     static constexpr struct { using enum binding_action_code;   } action;
     static constexpr struct { using enum binding_modifier_code; } mod;
 
