@@ -13,6 +13,7 @@ class input_system_interface
 public:
     using index_type = input_system::index_type;
     using binding_callback_type = input_system::binding_callback_type;
+    using input_context_type = input_system::input_context;
 
     // clang-format off
 
@@ -99,6 +100,11 @@ public:
                                                     std::string_view context_name)
     {
         return m_input_system->get_bindings(callback_name, context_name);
+    }
+
+    [[nodiscard]] constexpr const input_context_type& context() const noexcept
+    {
+        return m_input_system->context();
     }
 
 private:

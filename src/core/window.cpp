@@ -144,6 +144,7 @@ void window::set_callbacks() noexcept
 {
     set_key_callback();
     set_mouse_button_callback();
+    set_cursor_position_callback();
     set_framebuffer_resize_callback();
 }
 
@@ -169,7 +170,10 @@ void window::set_key_callback() noexcept
                                     static_cast<binding_action_code>(action),
                                     static_cast<binding_modifier_code>(mod));
 
-        data->engine->m_input->invoke_binding_callbacks(bind, *data->engine);
+        auto* input_system = data->engine->m_input;
+        input_system->context().last_key_binding_triggered = bind;
+        input_system->context().last_binding_triggered = bind;
+        input_system->invoke_binding_callbacks(bind, *data->engine);
     };
 
     glfwSetKeyCallback(m_handle.get(), adaptor_callback);
@@ -197,10 +201,31 @@ void window::set_mouse_button_callback() noexcept
                                     static_cast<binding_action_code>(action),
                                     static_cast<binding_modifier_code>(mod));
 
-        data->engine->m_input->invoke_binding_callbacks(bind, *data->engine);
+        auto* input_system = data->engine->m_input;
+        input_system->context().last_mbtn_binding_triggered = bind;
+        input_system->context().last_binding_triggered = bind;
+        input_system->invoke_binding_callbacks(bind, *data->engine);
     };
 
     glfwSetMouseButtonCallback(m_handle.get(), adaptor_callback);
+}
+
+void window::set_cursor_position_callback() noexcept
+{
+    // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
+    auto adaptor_callback = [](GLFWwindow* glfw_window, double x, double y) -> void
+    {
+        auto* data = static_cast<window_data*>(glfwGetWindowUserPointer(glfw_window));
+
+        if (!(data && data->engine && data->engine->m_input))
+        {
+            return;
+        }
+
+        data->engine->m_input->context().last_cursor_position = { static_cast<float>(x), static_cast<float>(y) };
+    };
+
+    glfwSetCursorPosCallback(m_handle.get(), adaptor_callback);
 }
 
 void window::set_framebuffer_resize_callback() noexcept

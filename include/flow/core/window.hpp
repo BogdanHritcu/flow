@@ -90,6 +90,7 @@ private:
     void set_callbacks() noexcept;
     void set_key_callback() noexcept;
     void set_mouse_button_callback() noexcept;
+    void set_cursor_position_callback() noexcept;
     void set_framebuffer_resize_callback() noexcept;
 
 private:

@@ -36,7 +36,7 @@ public:
 
     void start() final
     {
-        auto callback_start_game = [](flow::engine_interface engine, flow::binding /*bind*/) -> void
+        auto callback_start_game = [](flow::engine_interface engine) -> void
         {
             FLOW_LOG_INFO("started game"); // NOLINT
 
@@ -44,21 +44,21 @@ public:
             engine.input.push_binding_context(context_gameplay);
         };
 
-        auto callback_close_game = [](flow::engine_interface engine, flow::binding /*bind*/) -> void
+        auto callback_close_game = [](flow::engine_interface engine) -> void
         {
             FLOW_LOG_INFO("closed game"); // NOLINT
 
             engine.quit();
         };
 
-        auto callback_open_main_menu = [](flow::engine_interface engine, flow::binding /*bind*/) -> void
+        auto callback_open_main_menu = [](flow::engine_interface engine) -> void
         {
             FLOW_LOG_INFO("gameplay -> main menu"); // NOLINT
 
             engine.input.push_binding_context(context_main_menu);
         };
 
-        auto callback_exit_main_menu = [](flow::engine_interface engine, flow::binding /*bind*/) -> void
+        auto callback_exit_main_menu = [](flow::engine_interface engine) -> void
         {
             FLOW_LOG_INFO("main menu -> gameplay"); // NOLINT
 
@@ -66,27 +66,27 @@ public:
             engine.input.push_binding_context(context_gameplay);
         };
 
-        auto callback_jump = [&](flow::engine_interface /*engine*/, flow::binding /*bind*/) -> void
+        auto callback_jump = [&](flow::engine_interface /*engine*/) -> void
         {
             FLOW_LOG_INFO("jumped {}m", m_jump_height); // NOLINT
         };
 
-        auto callback_attack = [&](flow::engine_interface /*engine*/, flow::binding /*bind*/) -> void
+        auto callback_attack = [&](flow::engine_interface /*engine*/) -> void
         {
             FLOW_LOG_INFO("attacked (normal: {}dmg)", m_attack_damage); // NOLINT
         };
 
-        auto callback_special_attack = [&](flow::engine_interface /*engine*/, flow::binding /*bind*/) -> void
+        auto callback_special_attack = [&](flow::engine_interface /*engine*/) -> void
         {
             FLOW_LOG_INFO("attacked (special: {}dmg)", m_attack_damage * 3.0f); // NOLINT
         };
 
-        auto callback_move_left = [](flow::engine_interface /*engine*/, flow::binding /*bind*/) -> void
+        auto callback_move_left = [](flow::engine_interface /*engine*/) -> void
         {
             FLOW_LOG_INFO("moved left"); // NOLINT
         };
 
-        auto callback_move_right = [](flow::engine_interface /*engine*/, flow::binding /*bind*/) -> void
+        auto callback_move_right = [](flow::engine_interface /*engine*/) -> void
         {
             FLOW_LOG_INFO("moved right"); // NOLINT
         };
