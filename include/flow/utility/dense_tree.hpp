@@ -260,52 +260,14 @@ public:
             return end();
         }
 
-        index_type index = find_free_slot();
+        auto free_index = find_free_slot();
 
         if (is_before_begin_it)
         {
-            if (index != end_index)
-            {
-                m_node_slots[index] = make_node(before_begin_index,
-                                                m_root_index,
-                                                end_index,
-                                                value);
-            }
-            else
-            {
-                m_node_slots.push_back(make_node(before_begin_index,
-                                                 m_root_index,
-                                                 end_index,
-                                                 value));
-
-                index = static_cast<index_type>(m_node_slots.size() - 1);
-            }
-
-            m_root_index = index;
-        }
-        else
-        {
-            if (index != end_index)
-            {
-                m_node_slots[index] = make_node(it.m_index,
-                                                end_index,
-                                                first_child_index_of(it.m_index),
-                                                value);
-            }
-            else
-            {
-                m_node_slots.push_back(make_node(it.m_index,
-                                                 end_index,
-                                                 first_child_index_of(it.m_index),
-                                                 value));
-
-                index = static_cast<index_type>(m_node_slots.size() - 1);
-            }
-
-            node_at(it.m_index).indices.first_child = index;
+            return iterator(this, insert_root_at_or_push(free_index, value));
         }
 
-        return iterator(this, index);
+        return iterator(this, insert_child_at_or_push(free_index, it.m_index, value));
     }
 
     constexpr iterator erase_after(const_iterator it)
@@ -510,6 +472,54 @@ private:
         }
 
         return end_index;
+    }
+
+    constexpr index_type insert_root_at_or_push(index_type insert_index, const value_type& value)
+    {
+        if (insert_index != end_index)
+        {
+            m_node_slots[insert_index] = make_node(before_begin_index,
+                                                   m_root_index,
+                                                   end_index,
+                                                   value);
+        }
+        else
+        {
+            m_node_slots.push_back(make_node(before_begin_index,
+                                             m_root_index,
+                                             end_index,
+                                             value));
+
+            insert_index = static_cast<index_type>(m_node_slots.size() - 1);
+        }
+
+        m_root_index = insert_index;
+
+        return insert_index;
+    }
+
+    constexpr index_type insert_child_at_or_push(index_type insert_index, index_type parent_index, const value_type& value)
+    {
+        if (insert_index != end_index)
+        {
+            m_node_slots[insert_index] = make_node(parent_index,
+                                                   end_index,
+                                                   first_child_index_of(parent_index),
+                                                   value);
+        }
+        else
+        {
+            m_node_slots.push_back(make_node(parent_index,
+                                             end_index,
+                                             first_child_index_of(parent_index),
+                                             value));
+
+            insert_index = static_cast<index_type>(m_node_slots.size() - 1);
+        }
+
+        node_at(parent_index).indices.first_child = insert_index;
+
+        return insert_index;
     }
 
     [[nodiscard]] static constexpr bool is_valid_root(const node_type& node) noexcept
