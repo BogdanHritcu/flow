@@ -260,22 +260,11 @@ public:
             return end();
         }
 
-        // find a free slot
-        index_type index{ end_index };
-        while (m_free_slot_indices.size() > 0)
-        {
-            index = m_free_slot_indices.back();
-            m_free_slot_indices.pop_back();
-
-            if (!is_node(index))
-            {
-                break;
-            }
-        }
+        index_type index = find_free_slot();
 
         if (is_before_begin_it)
         {
-            if (index < m_node_slots.size())
+            if (index != end_index)
             {
                 m_node_slots[index] = make_node(before_begin_index,
                                                 m_root_index,
@@ -296,7 +285,7 @@ public:
         }
         else
         {
-            if (index < m_node_slots.size())
+            if (index != end_index)
             {
                 m_node_slots[index] = make_node(it.m_index,
                                                 end_index,
@@ -505,6 +494,22 @@ private:
         return index < m_node_slots.size()
             && ((index != m_root_index && is_valid_non_root(m_node_slots[index]))
                 || (index == m_root_index && is_valid_root(m_node_slots[index])));
+    }
+
+    [[nodiscard]] constexpr index_type find_free_slot() noexcept
+    {
+        while (m_free_slot_indices.size() > 0)
+        {
+            auto index = m_free_slot_indices.back();
+            m_free_slot_indices.pop_back();
+
+            if (index < m_node_slots.size() && !is_node(index))
+            {
+                return index;
+            }
+        }
+
+        return end_index;
     }
 
     [[nodiscard]] static constexpr bool is_valid_root(const node_type& node) noexcept
