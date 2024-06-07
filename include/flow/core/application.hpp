@@ -4,10 +4,14 @@
 #include "input_system.hpp"
 #include "window.hpp"
 
+#include "../utility/time.hpp"
+
 namespace flow {
 
 namespace detail {
+
     int entry(int argc, char** argv);
+
 }
 
 class application
@@ -19,7 +23,7 @@ public:
     using size_type = window::size_type;
 
 public:
-    application();
+    constexpr application() noexcept = default;
     application(const application&) = delete;
     application& operator=(const application&) = delete;
     application(application&&) = delete;
@@ -32,7 +36,10 @@ public:
     virtual void start()
     {}
 
-    virtual void update(float dt)
+    virtual void update(duration dt)
+    {}
+
+    virtual void fixed_update(duration dt)
     {}
 
     virtual void end()
@@ -43,17 +50,19 @@ public:
 
 private:
     void run();
-    void update_loop();
+    void main_loop();
     bool init();
     void terminate();
 
 private:
-    window m_window;
-    input_system m_input_system;
-    bool m_has_error_state;
+    window m_window{};
+    input_system m_input_system{};
+    bool m_has_error_state{};
+
+    std::uint32_t m_fixed_update_frequency{};
 
 protected:
-    engine_interface engine; // NOLINT(*-non-private-member-variables-in-classes)
+    engine_interface engine{}; // NOLINT(*-non-private-member-variables-in-classes)
 };
 
 } // namespace flow
