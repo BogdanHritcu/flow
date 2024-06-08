@@ -180,11 +180,7 @@ public:
     using const_iterator = detail::dfs_iterator<std::add_const_t<dense_tree>>;
 
 public:
-    constexpr dense_tree() noexcept
-        : m_root_index{ end_index }
-        , m_node_slots{}
-        , m_free_slot_indices{}
-    {}
+    constexpr dense_tree() noexcept = default;
 
     [[nodiscard]] constexpr iterator before_begin() noexcept
     {
@@ -594,9 +590,9 @@ private:
 
     // clang-format on
 private:
-    index_type m_root_index;
-    std::vector<node_type> m_node_slots;
-    std::vector<index_type> m_free_slot_indices;
+    index_type m_root_index{ end_index };
+    std::vector<node_type> m_node_slots{};
+    std::vector<index_type> m_free_slot_indices{};
 
     friend class detail::dfs_iterator<dense_tree>;
     friend class detail::dfs_iterator<std::add_const_t<dense_tree>>;
