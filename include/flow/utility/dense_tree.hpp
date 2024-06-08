@@ -2,6 +2,7 @@
 
 #include <concepts>
 #include <cstddef>
+#include <functional>
 #include <limits>
 #include <type_traits>
 #include <vector>
@@ -143,13 +144,19 @@ namespace detail {
 
 } // namespace detail
 
-template<typename T, std::unsigned_integral IndexT>
+template<typename T,
+         std::unsigned_integral IndexT,
+         bool OrderedChildren = false,
+         typename ChildrenCompT = std::less<T>>
 class dense_tree
 {
 public:
     using value_type = T;
     using difference_type = std::ptrdiff_t;
     using index_type = IndexT;
+    using children_comparator_type = ChildrenCompT;
+
+    static constexpr bool has_ordered_children = OrderedChildren;
 
 private:
     struct node_indices
@@ -495,6 +502,7 @@ private:
     }
 
     constexpr index_type insert_child_at_or_push(index_type insert_index, index_type parent_index, const value_type& value)
+        requires(!has_ordered_children)
     {
         if (insert_index != end_index)
         {
@@ -514,6 +522,48 @@ private:
         }
 
         node_at(parent_index).indices.first_child = insert_index;
+
+        return insert_index;
+    }
+
+    constexpr index_type insert_child_at_or_push(index_type insert_index, index_type parent_index, const value_type& value)
+        requires(has_ordered_children)
+    {
+        auto comp = children_comparator_type{};
+
+        auto prev_index = before_begin_index;
+        auto current_index = first_child_index_of(parent_index);
+        while (is_node(current_index) && !comp(value, node_at(current_index).value))
+        {
+            prev_index = current_index;
+            current_index = next_sibling_index_of(current_index);
+        }
+
+        if (insert_index != end_index)
+        {
+            m_node_slots[insert_index] = make_node(parent_index,
+                                                   end_index,
+                                                   current_index,
+                                                   value);
+        }
+        else
+        {
+            m_node_slots.push_back(make_node(parent_index,
+                                             end_index,
+                                             current_index,
+                                             value));
+
+            insert_index = static_cast<index_type>(m_node_slots.size() - 1);
+        }
+
+        if (prev_index == before_begin_index)
+        {
+            node_at(parent_index).indices.first_child = insert_index;
+        }
+        else
+        {
+            node_at(prev_index).indices.next_sibling = insert_index;
+        }
 
         return insert_index;
     }
@@ -600,19 +650,26 @@ private:
     friend class deserializer<dense_tree>;
 };
 
-template<typename DataT, std::unsigned_integral IndexT>
-struct serialization_traits<dense_tree<DataT, IndexT>>
+template<typename T,
+         std::unsigned_integral IndexT,
+         bool OrderedChildren,
+         typename ChildrenCompT>
+struct serialization_traits<dense_tree<T, IndexT, OrderedChildren, ChildrenCompT>>
 {
     using size_type = IndexT;
 };
 
-template<typename DataT, std::unsigned_integral IndexT>
-struct serializer<dense_tree<DataT, IndexT>>
+template<typename T,
+         std::unsigned_integral IndexT,
+         bool OrderedChildren,
+         typename ChildrenCompT>
+struct serializer<dense_tree<T, IndexT, OrderedChildren, ChildrenCompT>>
 {
-    using node_type = typename dense_tree<DataT, IndexT>::node_type;
-    using traits = serialization_traits<dense_tree<DataT, IndexT>>;
+    using tree_type = dense_tree<T, IndexT, OrderedChildren, ChildrenCompT>;
+    using node_type = typename tree_type::node_type;
+    using traits = serialization_traits<tree_type>;
 
-    void operator()(ostream_view out, const dense_tree<DataT, IndexT>& t) const
+    void operator()(ostream_view out, const tree_type& t) const
     {
         out.serialize(t.m_root_index);
 
@@ -642,13 +699,17 @@ struct serializer<dense_tree<DataT, IndexT>>
     }
 };
 
-template<typename DataT, std::unsigned_integral IndexT>
-struct deserializer<dense_tree<DataT, IndexT>>
+template<typename T,
+         std::unsigned_integral IndexT,
+         bool OrderedChildren,
+         typename ChildrenCompT>
+struct deserializer<dense_tree<T, IndexT, OrderedChildren, ChildrenCompT>>
 {
-    using node_type = typename dense_tree<DataT, IndexT>::node_type;
-    using traits = serialization_traits<dense_tree<DataT, IndexT>>;
+    using tree_type = dense_tree<T, IndexT, OrderedChildren, ChildrenCompT>;
+    using node_type = typename tree_type::node_type;
+    using traits = serialization_traits<tree_type>;
 
-    void operator()(istream_view in, dense_tree<DataT, IndexT>& t) const
+    void operator()(istream_view in, tree_type& t) const
     {
         in.deserialize(t.m_root_index);
 
