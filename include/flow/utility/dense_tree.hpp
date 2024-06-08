@@ -650,6 +650,12 @@ private:
     friend class deserializer<dense_tree>;
 };
 
+template<typename T, std::unsigned_integral IndexT>
+using unordered_children_dense_tree = dense_tree<T, IndexT, false, void>;
+
+template<typename T, std::unsigned_integral IndexT, typename ChildrenCompT = std::less<T>>
+using ordered_children_dense_tree = dense_tree<T, IndexT, true, ChildrenCompT>;
+
 template<typename T,
          std::unsigned_integral IndexT,
          bool OrderedChildren,
