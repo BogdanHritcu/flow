@@ -494,7 +494,7 @@ private:
         return insert_index;
     }
 
-    constexpr index_type insert_first_child_at_or_push(index_type insert_index, index_type parent_index, const value_type& value)
+    constexpr index_type insert_child_at_or_push(index_type insert_index, index_type parent_index, const value_type& value)
     {
         if (insert_index != end_index)
         {
