@@ -24,7 +24,8 @@ target_link_libraries(sandbox PRIVATE flow)
 source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES ${SANDBOX_SOURCES})
 source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES ${SANDBOX_HEADERS})
 
-set_target_properties(sandbox PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:sandbox>")
+set_target_properties(sandbox PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:sandbox>"
+                                         WIN32_EXECUTABLE "$<$<PLATFORM_ID:Windows>:$<$<CONFIG:Release>:TRUE>>")
 
 set(SANDBOX_DATA_DIR "${CMAKE_CURRENT_SOURCE_DIR}/data")
 set(SANDBOX_TARGET_DATA_DIR "$<TARGET_FILE_DIR:sandbox>/data")
