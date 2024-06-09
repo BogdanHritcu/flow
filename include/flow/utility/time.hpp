@@ -50,7 +50,7 @@ template<typename NewRep, typename Rep, typename Period>
 template<typename Rep, typename Period>
 [[nodiscard]] constexpr auto as_nanoseconds_duration(std::chrono::duration<Rep, Period> duration) noexcept
 {
-    return detail::as_ratio_duration<Rep, std::chrono::nanoseconds::period>(duration);
+    return std::chrono::nanoseconds(duration);
 }
 
 template<typename NewRep, typename Rep, typename Period>
@@ -74,7 +74,7 @@ template<typename NewRep, typename Rep, typename Period>
 template<typename Rep, typename Period>
 [[nodiscard]] constexpr auto as_microseconds_duration(std::chrono::duration<Rep, Period> duration) noexcept
 {
-    return detail::as_ratio_duration<Rep, std::chrono::microseconds::period>(duration);
+    return std::chrono::microseconds(duration);
 }
 
 template<typename NewRep, typename Rep, typename Period>
@@ -98,7 +98,7 @@ template<typename NewRep, typename Rep, typename Period>
 template<typename Rep, typename Period>
 [[nodiscard]] constexpr auto as_milliseconds_duration(std::chrono::duration<Rep, Period> duration) noexcept
 {
-    return detail::as_ratio_duration<Rep, std::chrono::milliseconds::period>(duration);
+    return std::chrono::milliseconds(duration);
 }
 
 template<typename NewRep, typename Rep, typename Period>
@@ -122,7 +122,7 @@ template<typename NewRep, typename Rep, typename Period>
 template<typename Rep, typename Period>
 [[nodiscard]] constexpr auto as_seconds_duration(std::chrono::duration<Rep, Period> duration) noexcept
 {
-    return detail::as_ratio_duration<Rep, std::chrono::seconds::period>(duration);
+    return std::chrono::seconds(duration);
 }
 
 template<typename NewRep, typename Rep, typename Period>
@@ -146,7 +146,7 @@ template<typename NewRep, typename Rep, typename Period>
 template<typename Rep, typename Period>
 [[nodiscard]] constexpr auto as_minutes_duration(std::chrono::duration<Rep, Period> duration) noexcept
 {
-    return detail::as_ratio_duration<Rep, std::chrono::minutes::period>(duration);
+    return std::chrono::minutes(duration);
 }
 
 template<typename NewRep, typename Rep, typename Period>
@@ -170,7 +170,7 @@ template<typename NewRep, typename Rep, typename Period>
 template<typename Rep, typename Period>
 [[nodiscard]] constexpr auto as_hours_duration(std::chrono::duration<Rep, Period> duration) noexcept
 {
-    return detail::as_ratio_duration<Rep, std::chrono::hours::period>(duration);
+    return std::chrono::hours(duration);
 }
 
 template<typename NewRep, typename Rep, typename Period>
@@ -194,7 +194,7 @@ template<typename NewRep, typename Rep, typename Period>
 template<typename Rep, typename Period>
 [[nodiscard]] constexpr auto as_days_duration(std::chrono::duration<Rep, Period> duration) noexcept
 {
-    return detail::as_ratio_duration<Rep, std::chrono::days::period>(duration);
+    return std::chrono::days(duration);
 }
 
 template<typename NewRep, typename Rep, typename Period>
@@ -218,7 +218,7 @@ template<typename NewRep, typename Rep, typename Period>
 template<typename Rep, typename Period>
 [[nodiscard]] constexpr auto as_weeks_duration(std::chrono::duration<Rep, Period> duration) noexcept
 {
-    return detail::as_ratio_duration<Rep, std::chrono::weeks::period>(duration);
+    return std::chrono::weeks(duration);
 }
 
 template<typename NewRep, typename Rep, typename Period>
@@ -242,7 +242,7 @@ template<typename NewRep, typename Rep, typename Period>
 template<typename Rep, typename Period>
 [[nodiscard]] constexpr auto as_months_duration(std::chrono::duration<Rep, Period> duration) noexcept
 {
-    return detail::as_ratio_duration<Rep, std::chrono::months::period>(duration);
+    return std::chrono::months(duration);
 }
 
 template<typename NewRep, typename Rep, typename Period>
@@ -266,7 +266,7 @@ template<typename NewRep, typename Rep, typename Period>
 template<typename Rep, typename Period>
 [[nodiscard]] constexpr auto as_years_duration(std::chrono::duration<Rep, Period> duration) noexcept
 {
-    return detail::as_ratio_duration<Rep, std::chrono::years::period>(duration);
+    return std::chrono::years(duration);
 }
 
 template<typename NewRep, typename Rep, typename Period>
