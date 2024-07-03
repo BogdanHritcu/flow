@@ -259,6 +259,125 @@ namespace gl {
             return m_handle.get();
         }
 
+        template<concepts::any_of<GLfloat, GLint, GLuint> T>
+        void set_uniform(GLint location, T u) const noexcept
+        {
+            if constexpr (std::same_as<T, GLfloat>)
+            {
+                glUniform1f(location, u);
+            }
+            else if constexpr (std::same_as<T, GLint>)
+            {
+                glUniform1i(location, u);
+            }
+            else if constexpr (std::same_as<T, GLuint>)
+            {
+                glUniform1ui(location, u);
+            }
+        }
+
+        template<concepts::any_of<GLfloat, GLint, GLuint> T, glm::qualifier Q>
+        void set_uniform(GLint location, const glm::tvec2<T, Q>& u) const noexcept
+        {
+            if constexpr (std::same_as<T, GLfloat>)
+            {
+                glUniform2fv(location, 1, glm::value_ptr(u));
+            }
+            else if constexpr (std::same_as<T, GLint>)
+            {
+                glUniform2iv(location, 1, glm::value_ptr(u));
+            }
+            else if constexpr (std::same_as<T, GLuint>)
+            {
+                glUniform2uiv(location, 1, glm::value_ptr(u));
+            }
+        }
+
+        template<concepts::any_of<GLfloat, GLint, GLuint> T, glm::qualifier Q>
+        void set_uniform(GLint location, const glm::tvec3<T, Q>& u) const noexcept
+        {
+            if constexpr (std::same_as<T, GLfloat>)
+            {
+                glUniform3fv(location, 1, glm::value_ptr(u));
+            }
+            else if constexpr (std::same_as<T, GLint>)
+            {
+                glUniform3iv(location, 1, glm::value_ptr(u));
+            }
+            else if constexpr (std::same_as<T, GLuint>)
+            {
+                glUniform3uiv(location, 1, glm::value_ptr(u));
+            }
+        }
+
+        template<concepts::any_of<GLfloat, GLint, GLuint> T, glm::qualifier Q>
+        void set_uniform(GLint location, const glm::tvec4<T, Q>& u) const noexcept
+        {
+            if constexpr (std::same_as<T, GLfloat>)
+            {
+                glUniform4fv(location, 1, glm::value_ptr(u));
+            }
+            else if constexpr (std::same_as<T, GLint>)
+            {
+                glUniform4iv(location, 1, glm::value_ptr(u));
+            }
+            else if constexpr (std::same_as<T, GLuint>)
+            {
+                glUniform4uiv(location, 1, glm::value_ptr(u));
+            }
+        }
+
+        template<concepts::any_of<GLfloat, GLint, GLuint> T, glm::qualifier Q>
+        void set_uniform(GLint location, const glm::tmat2x2<T, Q>& u, bool transpose = false) const noexcept
+        {
+            if constexpr (std::same_as<T, GLfloat>)
+            {
+                glUniformMatrix2fv(location, 1, static_cast<GLboolean>(transpose), glm::value_ptr(u));
+            }
+            else if constexpr (std::same_as<T, GLint>)
+            {
+                glUniformMatrix2iv(location, 1, static_cast<GLboolean>(transpose), glm::value_ptr(u));
+            }
+            else if constexpr (std::same_as<T, GLuint>)
+            {
+                glUniformMatrix2uiv(location, 1, static_cast<GLboolean>(transpose), glm::value_ptr(u));
+            }
+        }
+
+        template<concepts::any_of<GLfloat, GLint, GLuint> T, glm::qualifier Q>
+        void set_uniform(GLint location, const glm::tmat3x3<T, Q>& u, bool transpose = false) const noexcept
+        {
+            if constexpr (std::same_as<T, GLfloat>)
+            {
+                glUniformMatrix3fv(location, 1, static_cast<GLboolean>(transpose), glm::value_ptr(u));
+            }
+            else if constexpr (std::same_as<T, GLint>)
+            {
+                glUniformMatrix3iv(location, 1, static_cast<GLboolean>(transpose), glm::value_ptr(u));
+            }
+            else if constexpr (std::same_as<T, GLuint>)
+            {
+                glUniformMatrix3uiv(location, 1, static_cast<GLboolean>(transpose), glm::value_ptr(u));
+            }
+        }
+
+        template<concepts::any_of<GLfloat, GLint, GLuint> T, glm::qualifier Q>
+        void set_uniform(GLint location, const glm::tmat4x4<T, Q>& u, bool transpose = false) const noexcept
+        {
+            if constexpr (std::same_as<T, GLfloat>)
+            {
+                glUniformMatrix4fv(location, 1, static_cast<GLboolean>(transpose), glm::value_ptr(u));
+            }
+            else if constexpr (std::same_as<T, GLint>)
+            {
+                glUniformMatrix4iv(location, 1, static_cast<GLboolean>(transpose), glm::value_ptr(u));
+            }
+            else if constexpr (std::same_as<T, GLuint>)
+            {
+                glUniformMatrix4uiv(location, 1, static_cast<GLboolean>(transpose), glm::value_ptr(u));
+            }
+        }
+
     private:
         handle_type m_handle;
     };
