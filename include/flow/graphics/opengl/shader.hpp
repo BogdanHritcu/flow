@@ -1,17 +1,15 @@
 #pragma once
 
+#include <concepts>
 #include <filesystem>
 #include <fstream>
-#include <initializer_list>
-#include <span>
+#include <ranges>
 #include <string>
 #include <string_view>
-#include <vector>
 
 #include <glad/gl.h>
 
 #include "../../utility/unique_handle.hpp"
-#include "../../core/logger.hpp" // temp
 
 namespace flow {
 namespace gl {
@@ -151,24 +149,27 @@ namespace gl {
             return id != 0;
         }
 
-        bool link(std::span<shader> shaders) const
+        template<std::same_as<shader>... Args>
+        bool link(const Args&... shaders) const
         {
-            attach(shaders);
+            attach(shaders...);
 
             glLinkProgram(m_handle.get());
 
-            detach(shaders);
+            detach(shaders...);
 
             return get_link_status();
         }
 
-        bool link(std::initializer_list<shader> shaders) const
+        template<std::ranges::range R>
+            requires std::same_as<std::ranges::range_value_t<R>, shader>
+        bool link(R&& shaders) const
         {
-            attach(shaders);
+            attach(std::forward<R>(shaders));
 
             glLinkProgram(m_handle.get());
 
-            detach(shaders);
+            detach(std::forward<R>(shaders));
 
             return get_link_status();
         }
@@ -182,7 +183,6 @@ namespace gl {
                 shader shader;
                 if (!(shader.create(config) && shader.compile()))
                 {
-                    FLOW_LOG_ERROR(shader.get_info_log()); // temp
                     return false;
                 }
                 shaders.push_back(std::move(shader));
@@ -197,57 +197,33 @@ namespace gl {
             return get_link_status();
         }
 
-        bool link(std::initializer_list<shader_config> shader_configs) const
+        template<std::same_as<shader>... Args>
+        void attach(const Args&... shaders) const noexcept
         {
-            std::vector<shader> shaders;
-
-            for (auto& config : shader_configs)
-            {
-                shader shader;
-                if (!(shader.create(config) && shader.compile()))
-                {
-                    FLOW_LOG_ERROR(shader.get_info_log()); // temp
-                    return false;
-                }
-                shaders.push_back(std::move(shader));
-            }
-
-            attach(shaders);
-
-            glLinkProgram(m_handle.get());
-
-            detach(shaders);
-
-            return get_link_status();
+            (glAttachShader(m_handle.get(), shaders.id()), ...);
         }
 
-        void attach(std::span<shader> shaders) const noexcept
+        template<std::ranges::range R>
+            requires std::same_as<std::ranges::range_value_t<R>, shader>
+        void attach(R&& shaders) const noexcept
         {
-            for (auto& shader : shaders)
+            for (const auto& shader : shaders)
             {
                 glAttachShader(m_handle.get(), shader.id());
             }
         }
 
-        void attach(std::initializer_list<shader> shaders) const noexcept
+        template<std::same_as<shader>... Args>
+        void detach(const Args&... shaders) const noexcept
         {
-            for (auto& shader : shaders)
-            {
-                glAttachShader(m_handle.get(), shader.id());
-            }
+            (glDetachShader(m_handle.get(), shaders.id()), ...);
         }
 
-        void detach(std::span<shader> shaders) const noexcept
+        template<std::ranges::range R>
+            requires std::same_as<std::ranges::range_value_t<R>, shader>
+        void detach(R&& shaders) const noexcept
         {
-            for (auto& shader : shaders)
-            {
-                glDetachShader(m_handle.get(), shader.id());
-            }
-        }
-
-        void detach(std::initializer_list<shader> shaders) const noexcept
-        {
-            for (auto& shader : shaders)
+            for (const auto& shader : shaders)
             {
                 glDetachShader(m_handle.get(), shader.id());
             }
