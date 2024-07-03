@@ -41,6 +41,17 @@ namespace gl {
         // clang-format on
     };
 
+    enum class polygon_mode : GLenum
+    {
+        // clang-format off
+
+        point = GL_POINT,
+        line  = GL_LINE,
+        fill  = GL_FILL
+
+        // clang-format on
+    };
+
     enum class clear_target_flags : GLbitfield
     {
         // clang-format off
