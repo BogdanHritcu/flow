@@ -68,5 +68,10 @@ namespace gl {
                    static_cast<GLint>(size.y));
     }
 
+    inline void set_polygon_mode(polygon_mode mode) noexcept
+    {
+        glPolygonMode(GL_FRONT_AND_BACK, static_cast<GLenum>(mode));
+    }
+
 } // namespace gl
 } // namespace flow
