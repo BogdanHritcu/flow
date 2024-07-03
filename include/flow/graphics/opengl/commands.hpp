@@ -7,18 +7,17 @@
 #include <glm/vec2.hpp>
 #include <glm/vec4.hpp>
 
-#include "../../utility/concepts.hpp"
 #include "enum_types.hpp"
 
 namespace flow {
 namespace gl {
 
-    inline void draw_arrays(primitive_type primitive, std::size_t count, std::size_t offset) noexcept
+    inline void draw_arrays(primitive_type primitive, std::size_t count, std::size_t offset = 0) noexcept
     {
         glDrawArrays(static_cast<GLenum>(primitive), static_cast<GLint>(offset), static_cast<GLsizei>(count));
     }
 
-    inline void draw_elements(primitive_type primitive, type_value type, std::size_t count, std::size_t offset) noexcept
+    inline void draw_elements(primitive_type primitive, type_value type, std::size_t count, std::size_t offset = 0) noexcept
     {
         std::uintptr_t byte_offset = offset * sizeof_type_value(type);
 
@@ -28,7 +27,7 @@ namespace gl {
                        reinterpret_cast<void*>(byte_offset));
     }
 
-    inline void draw_arrays_instanced(primitive_type primitive, std::size_t count, std::size_t offset, std::size_t instance_count) noexcept
+    inline void draw_arrays_instanced(std::size_t instance_count, primitive_type primitive, std::size_t count, std::size_t offset = 0) noexcept
     {
         glDrawArraysInstanced(static_cast<GLenum>(primitive),
                               static_cast<GLint>(offset),
@@ -36,7 +35,7 @@ namespace gl {
                               static_cast<GLsizei>(instance_count));
     }
 
-    inline void draw_elements_instanced(primitive_type primitive, type_value type, std::size_t count, std::size_t offset, std::size_t instance_count) noexcept
+    inline void draw_elements_instanced(std::size_t instance_count, primitive_type primitive, type_value type, std::size_t count, std::size_t offset, = 0) noexcept
     {
         std::uintptr_t byte_offset = offset * sizeof_type_value(type);
 
