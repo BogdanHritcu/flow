@@ -126,11 +126,11 @@ public:
                                        m_batch.current_instance_count,
                                        m_batch.active_buffer_index * m_renderer.instance_capacity);
             m_renderer.vao.bind();
-            gl::draw_elements_instanced(m_renderer.draw_config.primitive_type,
+            gl::draw_elements_instanced(m_batch.current_instance_count,
+                                        m_renderer.draw_config.primitive_type,
                                         m_renderer.draw_config.element_type_value,
                                         m_renderer.draw_config.element_count,
-                                        m_renderer.draw_config.element_offset,
-                                        m_batch.current_instance_count);
+                                        m_renderer.draw_config.element_offset);
             m_renderer.buffers[m_batch.active_buffer_index].fence.lock();
             m_batch.active_buffer_index = ++m_batch.active_buffer_index % m_renderer.buffers.size();
         }
