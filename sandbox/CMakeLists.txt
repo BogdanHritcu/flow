@@ -11,10 +11,7 @@ add_executable(sandbox)
 
 set(SANDBOX_SOURCES "src/entry.cpp")
 
-set(SANDBOX_HEADERS "src/tests/input_system_test.hpp"
-                    "src/tests/dense_tree_test.hpp"
-                    "src/tests/textured_quads_test.hpp"
-                    "src/tests/utility_test.hpp")
+set(SANDBOX_HEADERS)
 
 target_sources(sandbox PRIVATE ${SANDBOX_SOURCES})
 target_sources(sandbox PRIVATE FILE_SET HEADERS FILES ${SANDBOX_HEADERS})
