@@ -1,6 +1,7 @@
 #pragma once
 
 #include <glm/ext/matrix_clip_space.hpp>
+#include <glm/ext/matrix_transform.hpp>
 #include <glm/mat4x4.hpp>
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
@@ -88,7 +89,7 @@ public:
 
     void set_projection(float left, float right, float bottom, float top, float z_near = -1.0f, float z_far = 1.0f) noexcept
     {
-        m_projection = glm::ortho(left, right, bottom, left, z_near, z_far);
+        m_projection = glm::ortho(left, right, bottom, top, z_near, z_far);
         m_size = glm::vec3(glm::abs(right - left), glm::abs(top - bottom), glm::abs(z_far - z_near));
     }
 
