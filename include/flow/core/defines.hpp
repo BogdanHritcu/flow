@@ -19,3 +19,6 @@
 #else
 #  define FLOW_INLINE inline
 #endif
+
+#define FLOW_CONCAT_IMPL(x, y) x##y
+#define FLOW_CONCAT(x, y) FLOW_CONCAT_IMPL(x, y)
