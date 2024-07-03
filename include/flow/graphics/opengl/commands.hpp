@@ -35,7 +35,7 @@ namespace gl {
                               static_cast<GLsizei>(instance_count));
     }
 
-    inline void draw_elements_instanced(std::size_t instance_count, primitive_type primitive, type_value type, std::size_t count, std::size_t offset, = 0) noexcept
+    inline void draw_elements_instanced(std::size_t instance_count, primitive_type primitive, type_value type, std::size_t count, std::size_t offset = 0) noexcept
     {
         std::uintptr_t byte_offset = offset * sizeof_type_value(type);
 
