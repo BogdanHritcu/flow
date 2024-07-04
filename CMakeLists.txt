@@ -112,13 +112,16 @@ source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES ${FLOW_HEADERS})
 
 # add external dependencies
 
+# glad
 add_subdirectory(extern/glad)
 
+# GLFW
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "Build GLFW docs" FORCE)
 set(GLFW_INSTALL OFF CACHE BOOL "Install GLFW" FORCE)
 set(GLFW_LIBRARY_TYPE "STATIC" CACHE STRING "Build GLFW as static lib" FORCE)
 add_subdirectory(extern/glfw)
 
+# glm
 set(GLM_ENABLE_CXX_20 ON CACHE BOOL "Enable C++20" FORCE)
 set(GLM_ENABLE_FAST_MATH ON CACHE BOOL "Enable fast math" FORCE)
 set(GLM_ENABLE_LANG_EXTENSIONS ON CACHE BOOL "Enable language extensions" FORCE)
@@ -130,16 +133,19 @@ set(GLM_ENABLE_SIMD_SSE4_1 ON CACHE BOOL "Enable SSE4.1 optimizations" FORCE)
 set(GLM_ENABLE_SIMD_SSE4_2 ON CACHE BOOL "Enable SSE4.2 optimizations" FORCE)
 set(GLM_ENABLE_SIMD_SSSE3 ON CACHE BOOL "Enable SSSE3 optimizations" FORCE)
 
-target_compile_definitions(flow PUBLIC "GLM_ENABLE_EXPERIMENTAL")
 add_subdirectory(extern/glm)
+target_compile_definitions(flow PUBLIC "GLM_ENABLE_EXPERIMENTAL")
 
+# stb
 add_subdirectory(extern/stb)
 
+# spdlog
 set(SPDLOG_USE_STD_FORMAT ON CACHE BOOL "Use std::format instead of fmt library" FORCE)
 
-target_compile_definitions(flow PUBLIC "SPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_TRACE")
 add_subdirectory(extern/spdlog)
+target_compile_definitions(flow PUBLIC "SPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_TRACE")
 
+# entt
 add_subdirectory(extern/entt)
 
 target_link_libraries(flow PUBLIC glad
@@ -156,4 +162,18 @@ set_target_properties(glad glfw update_mappings glm stb spdlog EnTT PROPERTIES F
 if(FLOW_BUILD_SANDBOX)
     add_subdirectory(sandbox)
     set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT sandbox)
+endif()
+
+set(FLOW_COMPILE_COMMANDS_FILE "${CMAKE_CURRENT_BINARY_DIR}/compile_commands.json")
+set(FLOW_COMPILE_COMMANDS_TEMP_FILE "${CMAKE_CURRENT_BINARY_DIR}/compile_commands_temp.json")
+
+find_program(FLOW_COMPDB compdb)
+if (FLOW_COMPDB)
+    execute_process(COMMAND "${FLOW_COMPDB}"
+                        -p "${CMAKE_BINARY_DIR}" list
+                    OUTPUT_FILE "${FLOW_COMPILE_COMMANDS_TEMP_FILE}")
+
+    add_custom_target(update_compile_commands ALL
+                      COMMAND "${CMAKE_COMMAND}"
+                          -E copy_if_different "${FLOW_COMPILE_COMMANDS_TEMP_FILE}" "${FLOW_COMPILE_COMMANDS_FILE}")
 endif()
