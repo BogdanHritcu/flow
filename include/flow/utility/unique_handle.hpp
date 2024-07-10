@@ -2,8 +2,7 @@
 
 #include <utility>
 
-#include <entt/core/compressed_pair.hpp>
-
+#include "compressed_pair.hpp"
 #include "concepts.hpp"
 
 namespace flow {
@@ -25,14 +24,14 @@ public:
         : unique_handle(handle_type{})
     {}
 
-    unique_handle(const unique_handle& other) = delete;
-    unique_handle& operator=(const unique_handle& other) = delete;
+    constexpr unique_handle(const unique_handle& other) = delete;
+    constexpr unique_handle& operator=(const unique_handle& other) = delete;
 
-    unique_handle(unique_handle&& other) noexcept
+    constexpr unique_handle(unique_handle&& other) noexcept
         : m_pair{ other.release(), other.get_deleter() }
     {}
 
-    unique_handle& operator=(unique_handle&& other) noexcept
+    constexpr unique_handle& operator=(unique_handle&& other) noexcept
     {
         if (this != &other)
         {
@@ -42,60 +41,57 @@ public:
         return *this;
     }
 
-    ~unique_handle()
+    constexpr ~unique_handle() noexcept(noexcept(m_pair.second(m_pair.first)))
     {
-        auto& [handle, deleter] = m_pair;
-
-        if (handle)
+        if (m_pair.first)
         {
-            deleter(handle);
+            m_pair.second(m_pair.first);
         }
     }
 
     constexpr void swap(unique_handle& other) noexcept
     {
         using std::swap;
-        swap(m_pair.first(), other.m_pair.first());
-        swap(m_pair.second(), other.m_pair.second());
+        swap(m_pair, other.m_pair);
     }
 
     [[nodiscard]] constexpr handle_type get() const noexcept
     {
-        return m_pair.first();
+        return m_pair.first;
     }
 
     [[nodiscard]] constexpr deleter_type& get_deleter() noexcept
     {
-        return m_pair.second();
+        return m_pair.second;
     }
 
     [[nodiscard]] constexpr const deleter_type& get_deleter() const noexcept
     {
-        return m_pair.second();
+        return m_pair.second;
     }
 
     [[nodiscard]] constexpr explicit operator bool() const noexcept
     {
-        return static_cast<bool>(m_pair.first());
+        return static_cast<bool>(m_pair.first);
     }
 
     constexpr handle_type release() noexcept
     {
-        return std::exchange(m_pair.first(), handle_type{});
+        return std::exchange(m_pair.first, handle_type{});
     }
 
     constexpr void reset(handle_type id = handle_type{}) noexcept
     {
-        handle_type old = std::exchange(m_pair.first(), id);
+        handle_type old = std::exchange(m_pair.first, id);
 
         if (old)
         {
-            m_pair.second()(old);
+            m_pair.second(old);
         }
     }
 
 private:
-    entt::compressed_pair<handle_type, deleter_type> m_pair;
+    compressed_pair<handle_type, deleter_type> m_pair;
 };
 
 } // namespace flow
