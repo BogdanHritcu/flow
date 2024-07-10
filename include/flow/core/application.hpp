@@ -28,7 +28,7 @@ public:
     application& operator=(const application&) = delete;
     application(application&&) = delete;
     application& operator=(application&&) = delete;
-    virtual ~application() = default;
+    virtual ~application() noexcept(false) = default;
 
     virtual void setup()
     {}
