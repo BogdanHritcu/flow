@@ -2,15 +2,12 @@
 
 #include <cstddef>
 #include <span>
-#include <utility>
 #include <vector>
 
 #include "../../core/assertion.hpp"
 #include "../opengl/buffer.hpp"
 #include "../opengl/commands.hpp"
 #include "../opengl/fence.hpp"
-#include "../opengl/shader.hpp"
-#include "../opengl/texture.hpp"
 #include "../opengl/vertex_array.hpp"
 #include "renderer_config.hpp"
 
@@ -153,7 +150,7 @@ private:
             std::size_t element_offset;
         };
 
-        std::size_t instance_capacity;
+        std::size_t instance_capacity{};
         std::vector<buffer_region> buffers;
         gl::buffer<instance_type> ssbo;
         gl::vertex_array vao;
