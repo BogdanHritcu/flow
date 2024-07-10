@@ -1,7 +1,9 @@
 #pragma once
 
+#include <concepts>
 #include <cstddef>
 #include <cstdint>
+#include <ranges>
 
 #include <glad/gl.h>
 #include <glm/vec2.hpp>
@@ -39,6 +41,17 @@ inline void draw_elements_instanced(std::size_t instance_count, primitive_type p
                             static_cast<GLenum>(type),
                             reinterpret_cast<void*>(static_cast<std::uintptr_t>(offset * sizeof_type_value(type))), // NOLINT
                             static_cast<GLsizei>(instance_count));
+}
+
+template<std::ranges::contiguous_range Rc, std::ranges::contiguous_range Ro>
+    requires std::same_as<std::ranges::range_value_t<Rc>, GLint>
+          && std::same_as<std::ranges::range_value_t<Ro>, GLsizei>
+inline void multi_draw_arrays(primitive_type primitive, Rc&& counts, Ro&& offsets) noexcept
+{
+    glMultiDrawArrays(static_cast<GLenum>(primitive),
+                      std::ranges::data(offsets),
+                      std::ranges::data(counts),
+                      static_cast<GLsizei>(std::min(std::ranges::size(counts), std::ranges::size(offsets))));
 }
 
 inline void clear(clear_target_flags flags = clear_target_flags::color) noexcept
