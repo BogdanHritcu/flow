@@ -19,8 +19,10 @@
 #include "../opengl/vertex_array.hpp"
 
 namespace flow {
-namespace detail {
-    inline constexpr std::string_view vertex_shader_source = R"(
+class line_renderer
+{
+private:
+    static constexpr std::string_view vertex_shader_source = R"(
     /*
     *   vertex shader for line drawing based on the stackoverflow answer:
     *   https://stackoverflow.com/questions/60440682/drawing-a-line-in-modern-opengl
@@ -85,7 +87,7 @@ namespace detail {
     }
     )";
 
-    inline constexpr std::string_view fragment_shader_source = R"(
+    static constexpr std::string_view fragment_shader_source = R"(
     #version 460
 
     in vec4 v_color;
@@ -96,11 +98,7 @@ namespace detail {
         out_color = v_color;
     }
     )";
-} // namespace detail
 
-class line_renderer
-{
-private:
     struct internal_vertex
     {
         glm::aligned_vec4 color;
@@ -121,7 +119,7 @@ public:
         gl::shader fragment_shader;
 
         if (!(vertex_shader.create(flow::gl::shader_type::vertex)
-            && vertex_shader.from_string(detail::vertex_shader_source)
+            && vertex_shader.from_string(vertex_shader_source)
             && vertex_shader.compile()))
         {
             FLOW_LOG_ERROR("failed to create vertex shader: {}", vertex_shader.get_info_log());
@@ -129,7 +127,7 @@ public:
         }
 
         if (!(fragment_shader.create(flow::gl::shader_type::fragment)
-            && fragment_shader.from_string(detail::fragment_shader_source)
+            && fragment_shader.from_string(fragment_shader_source)
             && fragment_shader.compile()))
         {
             FLOW_LOG_ERROR("failed to create fragment shader: {}", fragment_shader.get_info_log());
