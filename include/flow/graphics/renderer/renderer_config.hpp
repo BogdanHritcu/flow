@@ -5,11 +5,8 @@
 #include "../opengl/vertex_attribute.hpp"
 
 namespace flow {
-
 enum class render_mode
 {
-    // clang-format off
-
     points,
     lines,
     line_loop,
@@ -17,8 +14,6 @@ enum class render_mode
     triangles,
     triangle_strip,
     triangle_fan
-
-    // clang-format on
 };
 
 template<typename VertexT, typename IndexT>
@@ -35,5 +30,4 @@ struct renderer_config
     size_type buffer_count;
     render_mode render_mode;
 };
-
 } // namespace flow
