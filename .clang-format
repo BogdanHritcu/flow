@@ -20,6 +20,7 @@ AllowShortIfStatementsOnASingleLine: true
 AllowShortLambdasOnASingleLine: Inline
 AllowShortLoopsOnASingleLine: true
 AlwaysBreakTemplateDeclarations: Yes
+BinPackArguments: false
 BinPackParameters: false
 BraceWrapping: 
   AfterCaseLabel: true
@@ -45,7 +46,7 @@ BreakBeforeBraces: Custom
 BreakConstructorInitializers: BeforeComma
 BreakConstructorInitializersBeforeComma: false
 BreakInheritanceList: AfterComma
-ColumnLimit: 120
+ColumnLimit: 0
 ConstructorInitializerAllOnOneLineOrOnePerLine: false
 ContinuationIndentWidth: 8
 Cpp11BracedListStyle: false
