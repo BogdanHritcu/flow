@@ -5,9 +5,9 @@
 #include <utility>
 #include <vector>
 
-#include <glm/gtx/type_aligned.hpp>
 #include <glm/mat4x4.hpp>
 #include <glm/vec2.hpp>
+#include <glm/gtc/type_aligned.hpp>
 
 #include "../../core/logger.hpp"
 #include "../../utility/concepts.hpp"
@@ -19,7 +19,6 @@
 #include "../opengl/vertex_array.hpp"
 
 namespace flow {
-
 namespace detail {
     inline constexpr std::string_view vertex_shader_source = R"(
     /*
@@ -32,7 +31,7 @@ namespace detail {
     struct vertex
     {
         vec4 color;
-        vec2 position;
+        vec4 position;
     };
 
     layout(std430, binding = 0) readonly buffer vertex_buffer
@@ -60,7 +59,7 @@ namespace detail {
         vec4 line_vertices[4];
         for (int i = 0; i < 4; ++i)
         {
-            line_vertices[i] = u_mvp * vec4(vertices[line_index + i].position, 0.0, 1.0);
+            line_vertices[i] = u_mvp * vertices[line_index + i].position;
             line_vertices[i].xyz /= line_vertices[i].w;
             line_vertices[i].xy = (line_vertices[i].xy + 1.0) * 0.5 * u_resolution;
         }
@@ -97,22 +96,22 @@ namespace detail {
         out_color = v_color;
     }
     )";
-
 } // namespace detail
-
-enum class line_strip_mode
-{
-    strip,
-    loop
-};
 
 class line_renderer
 {
+private:
+    struct internal_vertex
+    {
+        glm::aligned_vec4 color;
+        glm::aligned_vec4 position;
+    };
+
 public:
     struct vertex
     {
-        glm::aligned_vec4 color;
-        glm::aligned_vec2 position;
+        glm::vec4 color;
+        glm::vec2 position;
     };
 
 public:
@@ -122,23 +121,23 @@ public:
         gl::shader fragment_shader;
 
         if (!(vertex_shader.create(flow::gl::shader_type::vertex)
-              && vertex_shader.from_string(detail::vertex_shader_source)
-              && vertex_shader.compile()))
+            && vertex_shader.from_string(detail::vertex_shader_source)
+            && vertex_shader.compile()))
         {
             FLOW_LOG_ERROR("failed to create vertex shader: {}", vertex_shader.get_info_log());
             return false;
         }
 
         if (!(fragment_shader.create(flow::gl::shader_type::fragment)
-              && fragment_shader.from_string(detail::fragment_shader_source)
-              && fragment_shader.compile()))
+            && fragment_shader.from_string(detail::fragment_shader_source)
+            && fragment_shader.compile()))
         {
             FLOW_LOG_ERROR("failed to create fragment shader: {}", fragment_shader.get_info_log());
             return false;
         }
 
         if (!(m_renderer.shader.create()
-              && m_renderer.shader.link(vertex_shader, fragment_shader)))
+            && m_renderer.shader.link(vertex_shader, fragment_shader)))
         {
             FLOW_LOG_ERROR("failed to link shaders: {}", m_renderer.shader.get_info_log());
             return false;
@@ -146,11 +145,13 @@ public:
 
         if (!m_renderer.vao.create())
         {
+            FLOW_LOG_ERROR("failed to create vertex array");
             return false;
         }
 
         if (!m_renderer.ssbo.create())
         {
+            FLOW_LOG_ERROR("failed to create shader storage");
             return false;
         }
 
@@ -176,7 +177,7 @@ public:
         return true;
     }
 
-    void begin_batch(const glm::mat4& mvp, glm::vec2 resolution, float line_width)
+    void begin_batch(const glm::mat4& mvp, const glm::vec2& resolution, float line_width)
     {
         m_renderer.shader.use();
         m_renderer.shader.set_uniform(0, mvp);
@@ -188,10 +189,9 @@ public:
 
     template<std::ranges::range R>
         requires std::same_as<std::ranges::range_value_t<R>, vertex>
-    void submit(R&& vertices, line_strip_mode mode = line_strip_mode::strip)
+    void submit_strip(R&& vertices, float z)
     {
         auto vertex_count = std::ranges::size(vertices);
-        bool is_loop = mode == line_strip_mode::loop;
 
         if (vertex_count < 2)
         {
@@ -199,57 +199,77 @@ public:
         }
 
         auto& current_buffer = m_renderer.buffers[m_renderer.current_buffer_index];
-        auto buffer_capacity = current_buffer.span.size();
 
-        if (m_renderer.vertex_count + vertex_count + 2 + is_loop > buffer_capacity)
+        current_buffer.span[m_renderer.vertex_count].position = { compute_position_before_first(vertices[0].position,
+                                                                      vertices[1].position),
+                                                                  z,
+                                                                  1.0f };
+        current_buffer.span[m_renderer.vertex_count + vertex_count + 1].position = {
+            compute_position_after_last(vertices[vertex_count - 2].position,
+                                        vertices[vertex_count - 1].position),
+            z,
+            1.0f };
+        submit_strip_vertices(vertices, z, false);
+    }
+
+    template<std::ranges::range R>
+    void submit_strip(R&& vertices)
+    {
+        submit_strip(std::forward<R>(vertices));
+    }
+
+    template<std::ranges::range R>
+        requires std::same_as<std::ranges::range_value_t<R>, vertex>
+    void submit_loop(R&& vertices, float z)
+    {
+        auto vertex_count = std::ranges::size(vertices);
+
+        if (vertex_count < 2)
         {
-            end_batch();
-            reset_current_buffer();
+            return;
         }
 
-        for (std::size_t i = 0; i < vertex_count; ++i)
-        {
-            current_buffer.span[m_renderer.vertex_count + i + 1] = vertices[i];
-        }
+        auto& current_buffer = m_renderer.buffers[m_renderer.current_buffer_index];
 
-        if (is_loop)
-        {
-            current_buffer.span[m_renderer.vertex_count] = vertices[vertex_count - 1];
-            current_buffer.span[m_renderer.vertex_count + vertex_count + 1] = vertices[0];
-            current_buffer.span[m_renderer.vertex_count + vertex_count + 2] = vertices[1];
-            ++vertex_count;
-        }
-        else
-        {
-            current_buffer.span[m_renderer.vertex_count].position = compute_position_before_first(vertices[0].position,
-                                                                                                  vertices[1].position);
-            current_buffer.span[m_renderer.vertex_count + vertex_count + 1].position = compute_position_after_last(vertices[vertex_count - 2].position,
-                                                                                                                   vertices[vertex_count - 1].position);
-        }
+        current_buffer.span[m_renderer.vertex_count].position = { vertices[vertex_count - 1].position, z, 1.0f };
+        current_buffer.span[m_renderer.vertex_count + vertex_count + 1] = internal_vertex{ .color = vertices[0].color,
+            .position = { vertices[0].position, z, 1.0f } };
+        current_buffer.span[m_renderer.vertex_count + vertex_count + 2].position = { vertices[1].position, z, 1.0f };
 
-        update_counters(vertex_count);
+        submit_strip_vertices(vertices, z, true);
+    }
+
+    template<std::ranges::range R>
+    void submit_loop(R&& vertices)
+    {
+        submit_loop(std::forward<R>(vertices), 1.0f);
     }
 
     template<std::ranges::range R>
         requires concepts::any_of<std::ranges::range_value_t<R>, glm::vec2, glm::aligned_vec2>
-    void submit(R&& positions, const glm::vec4& color, line_strip_mode mode = line_strip_mode::strip)
+    void submit_loop(R&& positions, float z, const glm::vec4& color)
     {
         auto make_vertex = [color](auto position) -> vertex
         {
             return { .color = color, .position = position };
         };
 
-        submit(positions | std::views::transform(make_vertex), mode);
+        submit_loop(positions | std::views::transform(make_vertex), z);
     }
 
-    template<std::ranges::contiguous_range R>
-        requires concepts::any_of<std::ranges::range_value_t<R>, glm::vec2, glm::aligned_vec2>
-    void submit(R&& positions, line_strip_mode mode = line_strip_mode::strip)
+    template<std::ranges::range R>
+    void submit_loop(R&& positions, float z)
     {
-        submit(std::forward<R>(positions), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), mode);
+        submit_loop(std::forward<R>(positions), z, { 1.0f, 1.0f, 1.0f, 1.0f });
     }
 
-    void submit(glm::vec2 a, glm::vec2 b, const glm::vec4& color_a, const glm::vec4& color_b)
+    template<std::ranges::range R>
+    void submit_loop(R&& positions, const glm::vec4& color)
+    {
+        submit_loop(std::forward<R>(positions), 0.0f, color);
+    }
+
+    void submit_line(glm::vec2 a, glm::vec2 b, float z, const glm::vec4& color_a, const glm::vec4& color_b)
     {
         auto& current_buffer = m_renderer.buffers[m_renderer.current_buffer_index];
         auto buffer_capacity = current_buffer.span.size();
@@ -260,17 +280,42 @@ public:
             reset_current_buffer();
         }
 
-        current_buffer.span[m_renderer.vertex_count + 0].position = compute_position_before_first(a, b);
-        current_buffer.span[m_renderer.vertex_count + 1] = { .color = color_a, .position = a };
-        current_buffer.span[m_renderer.vertex_count + 2] = { .color = color_b, .position = b };
-        current_buffer.span[m_renderer.vertex_count + 3].position = compute_position_after_last(a, b);
+        current_buffer.span[m_renderer.vertex_count + 0].position = { compute_position_before_first(a, b), z, 1.0f };
+        current_buffer.span[m_renderer.vertex_count + 1] = { .color = color_a, .position = { a, z, 1.0f } };
+        current_buffer.span[m_renderer.vertex_count + 2] = { .color = color_b, .position = { b, z, 1.0f } };
+        current_buffer.span[m_renderer.vertex_count + 3].position = { compute_position_after_last(a, b), z, 1.0f };
 
-        update_counters(2);
+        constexpr auto draw_vertices_per_line = 6;
+        m_renderer.draw_vertex_counts.emplace_back(draw_vertices_per_line);
+        m_renderer.draw_vertex_starts.emplace_back(m_renderer.draw_vertex_start);
+
+        m_renderer.vertex_count += 4;
+        m_renderer.draw_vertex_start += 4 * draw_vertices_per_line;
     }
 
-    void submit(glm::vec2 a, glm::vec2 b, const glm::vec4& color = { 1.0f, 1.0f, 1.0f, 1.0f })
+    void submit_line(const glm::vec2& a, const glm::vec2& b, float z)
     {
-        submit(a, b, color, color);
+        submit_line(a, b, z, { 1.0f, 1.0f, 1.0f, 1.0f });
+    }
+
+    void submit_line(const glm::vec2& a, const glm::vec2& b, const glm::vec4& color_a, const glm::vec4& color_b)
+    {
+        submit_line(a, b, 0.0f, color_a, color_b);
+    }
+
+    void submit_line(const glm::vec2& a, const glm::vec2& b, float z, const glm::vec4& color)
+    {
+        submit_line(a, b, z, color, color);
+    }
+
+    void submit_line(const glm::vec2& a, const glm::vec2& b, const glm::vec4& color)
+    {
+        submit_line(a, b, 0.0f, color);
+    }
+
+    void submit_line(const glm::vec2& a, const glm::vec2& b)
+    {
+        submit_line(a, b, 0.0f, { 1.0f, 1.0f, 1.0f, 1.0f });
     }
 
     void end_batch(bool reset = true)
@@ -296,6 +341,37 @@ public:
     }
 
 private:
+    template<std::ranges::range R>
+        requires std::same_as<std::ranges::range_value_t<R>, vertex>
+    void submit_strip_vertices(R&& vertices, float z, bool is_loop)
+    {
+        auto vertex_count = std::ranges::size(vertices);
+
+        auto& current_buffer = m_renderer.buffers[m_renderer.current_buffer_index];
+        auto buffer_capacity = current_buffer.span.size();
+
+        if (m_renderer.vertex_count + vertex_count + 2 > buffer_capacity)
+        {
+            end_batch();
+            reset_current_buffer();
+        }
+
+        for (std::size_t i = 0; i < vertex_count; ++i)
+        {
+            current_buffer.span[m_renderer.vertex_count + i + 1] = internal_vertex{
+                .color = vertices[i].color,
+                .position = { vertices[i].position, z, 1.0f } };
+        }
+
+        vertex_count += is_loop;
+        constexpr auto draw_vertices_per_line = 6;
+        m_renderer.draw_vertex_counts.emplace_back(draw_vertices_per_line * (vertex_count - 1));
+        m_renderer.draw_vertex_starts.emplace_back(m_renderer.draw_vertex_start);
+
+        m_renderer.vertex_count += vertex_count + 2;
+        m_renderer.draw_vertex_start += static_cast<GLint>((vertex_count + 2) * draw_vertices_per_line);
+    }
+
     void reset_current_buffer()
     {
         m_renderer.vertex_count = 0;
@@ -305,22 +381,16 @@ private:
         m_renderer.buffers[m_renderer.current_buffer_index].fence.wait();
     }
 
-    void update_counters(std::size_t vertex_count)
-    {
-        constexpr auto draw_vertices_per_line = 6;
-        m_renderer.draw_vertex_counts.emplace_back(draw_vertices_per_line * (vertex_count - 1));
-        m_renderer.draw_vertex_starts.emplace_back(m_renderer.draw_vertex_start);
-
-        m_renderer.vertex_count += vertex_count + 2;
-        m_renderer.draw_vertex_start += static_cast<GLint>((vertex_count + 2) * draw_vertices_per_line);
-    }
-
-    [[nodiscard]] constexpr glm::vec2 compute_position_before_first(glm::vec2 a, glm::vec2 b) const noexcept
+    [[nodiscard]] static constexpr glm::vec2 compute_position_before_first(
+            const glm::vec2& a,
+            const glm::vec2& b) noexcept
     {
         return a - (b - a);
     }
 
-    [[nodiscard]] constexpr glm::vec2 compute_position_after_last(glm::vec2 a, glm::vec2 b) const noexcept
+    [[nodiscard]] static constexpr glm::vec2 compute_position_after_last(
+            const glm::vec2& a,
+            const glm::vec2& b) noexcept
     {
         return b + (b - a);
     }
@@ -329,8 +399,8 @@ private:
     template<typename T>
     struct renderer_state
     {
-        using size_type = gl::buffer<T>::size_type;
-        using offset_type = gl::buffer<T>::offset_type;
+        using size_type = typename gl::buffer<T>::size_type;
+        using offset_type = typename gl::buffer<T>::offset_type;
 
         struct fenced_buffer
         {
@@ -349,7 +419,6 @@ private:
         std::vector<GLint> draw_vertex_starts;
     };
 
-    renderer_state<vertex> m_renderer{};
+    renderer_state<internal_vertex> m_renderer{};
 };
-
 } // namespace flow
