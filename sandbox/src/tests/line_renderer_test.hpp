@@ -12,10 +12,10 @@
 #include <flow/graphics/orthographic_camera.hpp>
 #include <flow/graphics/renderer/line_renderer.hpp>
 
-class renderer_line_test final : public flow::application
+class line_renderer_test final : public flow::application
 {
 public:
-    void setup() final
+    void setup() override
     {
         engine.window.set_title("line_test");
         engine.window.set_size(640, 480); // NOLINT
@@ -31,11 +31,14 @@ public:
         flow::gl::set_clear_color({ 0.0f, 0.0f, 0.0f, 1.0f });
     }
 
-    void update(flow::duration /*dt*/) final
+    void update(flow::duration /*dt*/) override
     {
         flow::gl::clear();
 
-        glm::vec2 resolution = { static_cast<float>(engine.window.width()), static_cast<float>(engine.window.height()) };
+        glm::vec2 resolution = {
+            static_cast<float>(engine.window.width()),
+            static_cast<float>(engine.window.height())
+        };
 
         flow::gl::set_polygon_mode(flow::gl::polygon_mode::fill);
 
@@ -47,11 +50,15 @@ public:
         m_renderer.begin_batch(m_camera.projection() * modelview, resolution, 10.0f);
         for (std::size_t i = 1; i <= loop_count; ++i)
         {
-            m_renderer.submit(std::to_array<flow::line_renderer::vertex>({ { { 1.0f, 0.0f, 0.0f, 1.0f }, glm::vec2{ -0.2f, -0.2f } * static_cast<float>(i) },
-                                                                           { { 0.0f, 1.0f, 0.0f, 1.0f }, glm::vec2{ -0.2f, 0.2f } * static_cast<float>(i) },
-                                                                           { { 1.0f, 1.0f, 0.0f, 1.0f }, glm::vec2{ 0.2f, 0.2f } * static_cast<float>(i) },
-                                                                           { { 0.0f, 0.0f, 1.0f, 1.0f }, glm::vec2{ 0.2f, -0.2f } * static_cast<float>(i) } }),
-                              flow::line_strip_mode::loop);
+            m_renderer.submit_loop(
+                std::to_array<flow::line_renderer::vertex>(
+                    {
+                        { { 1.0f, 0.0f, 0.0f, 1.0f }, glm::vec2{ -0.2f, -0.2f } * static_cast<float>(i) },
+                        { { 0.0f, 1.0f, 0.0f, 1.0f }, glm::vec2{ -0.2f, 0.2f } * static_cast<float>(i) },
+                        { { 1.0f, 1.0f, 0.0f, 1.0f }, glm::vec2{ 0.2f, 0.2f } * static_cast<float>(i) },
+                        { { 0.0f, 0.0f, 1.0f, 1.0f }, glm::vec2{ 0.2f, -0.2f } * static_cast<float>(i) }
+                    }),
+                1.0f);
         }
         m_renderer.end_batch();
 
@@ -63,11 +70,13 @@ public:
         m_renderer.begin_batch(m_camera.projection() * modelview, resolution, 10.0f);
         for (std::size_t i = 1; i <= loop_count; ++i)
         {
-            m_renderer.submit(std::array{ glm::vec2{ -0.2f, -0.2f } * static_cast<float>(i),
-                                          glm::vec2{ -0.2f, 0.2f } * static_cast<float>(i),
-                                          glm::vec2{ 0.2f, 0.2f } * static_cast<float>(i),
-                                          glm::vec2{ 0.2f, -0.2f } * static_cast<float>(i) },
-                              flow::line_strip_mode::loop);
+            m_renderer.submit_loop(std::array{
+                                       glm::vec2{ -0.2f, -0.2f } * static_cast<float>(i),
+                                       glm::vec2{ -0.2f, 0.2f } * static_cast<float>(i),
+                                       glm::vec2{ 0.2f, 0.2f } * static_cast<float>(i),
+                                       glm::vec2{ 0.2f, -0.2f } * static_cast<float>(i)
+                                   },
+                                   1.0f);
         }
         m_renderer.end_batch();
     }
