@@ -10,49 +10,37 @@
 #include <string_view>
 
 #include <glad/gl.h>
-#include <glm/gtc/type_ptr.hpp>
 #include <glm/mat4x4.hpp>
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #include "../../utility/unique_handle.hpp"
 
 namespace flow::gl {
-
 namespace fs = std::filesystem;
 
 enum class shader_type : GLenum
 {
-    // clang-format off
-
-        vertex   = GL_VERTEX_SHADER,
-        fragment = GL_FRAGMENT_SHADER,
-        geometry = GL_GEOMETRY_SHADER,
-        compute  = GL_COMPUTE_SHADER
-
-    // clang-format on
-};
-
-struct shader_config
-{
-    fs::path path;
-    gl::shader_type type;
+    vertex   = GL_VERTEX_SHADER,
+    fragment = GL_FRAGMENT_SHADER,
+    geometry = GL_GEOMETRY_SHADER,
+    compute  = GL_COMPUTE_SHADER
 };
 
 class shader
 {
 public:
     using id_type = GLuint;
-    // clang-format off
-        using deleter_type = decltype([](id_type id) { glDeleteShader(id); });
-    // clang-format on
+    using deleter_type = decltype([](id_type id)
+    {
+        glDeleteShader(id);
+    });
     using handle_type = unique_handle<id_type, deleter_type>;
 
 public:
-    constexpr shader() noexcept
-        : m_handle{}
-    {}
+    constexpr shader() noexcept = default;
 
     bool create(shader_type type) noexcept
     {
@@ -60,11 +48,6 @@ public:
         m_handle.reset(id);
 
         return id != 0;
-    }
-
-    bool create(const shader_config& config)
-    {
-        return create(config.type) && from_file(config.path);
     }
 
     bool compile() const
@@ -130,22 +113,21 @@ public:
     }
 
 private:
-    handle_type m_handle;
+    handle_type m_handle{};
 };
 
 class shader_program
 {
 public:
     using id_type = GLuint;
-    // clang-format off
-        using deleter_type = decltype([](id_type id) { glDeleteProgram(id); });
-    // clang-format on
+    using deleter_type = decltype([](id_type id)
+    {
+        glDeleteProgram(id);
+    });
     using handle_type = unique_handle<id_type, deleter_type>;
 
 public:
-    constexpr shader_program() noexcept
-        : m_handle{}
-    {}
+    constexpr shader_program() noexcept = default;
 
     bool create() noexcept
     {
@@ -176,29 +158,6 @@ public:
         glLinkProgram(m_handle.get());
 
         detach(std::forward<R>(shaders));
-
-        return get_link_status();
-    }
-
-    bool link(std::span<shader_config> shader_configs) const
-    {
-        std::vector<shader> shaders;
-
-        for (auto& config : shader_configs)
-        {
-            shader shader;
-            if (!(shader.create(config) && shader.compile()))
-            {
-                return false;
-            }
-            shaders.push_back(std::move(shader));
-        }
-
-        attach(shaders);
-
-        glLinkProgram(m_handle.get());
-
-        detach(shaders);
 
         return get_link_status();
     }
@@ -283,7 +242,7 @@ public:
     }
 
     template<concepts::any_of<GLfloat, GLint, GLuint> T, glm::qualifier Q>
-    void set_uniform(GLint location, const glm::tvec2<T, Q>& u) const noexcept
+    void set_uniform(GLint location, const glm::vec<2, T, Q>& u) const noexcept
     {
         if constexpr (std::same_as<T, GLfloat>)
         {
@@ -300,7 +259,7 @@ public:
     }
 
     template<concepts::any_of<GLfloat, GLint, GLuint> T, glm::qualifier Q>
-    void set_uniform(GLint location, const glm::tvec3<T, Q>& u) const noexcept
+    void set_uniform(GLint location, const glm::vec<3, T, Q>& u) const noexcept
     {
         if constexpr (std::same_as<T, GLfloat>)
         {
@@ -317,7 +276,7 @@ public:
     }
 
     template<concepts::any_of<GLfloat, GLint, GLuint> T, glm::qualifier Q>
-    void set_uniform(GLint location, const glm::tvec4<T, Q>& u) const noexcept
+    void set_uniform(GLint location, const glm::vec<4, T, Q>& u) const noexcept
     {
         if constexpr (std::same_as<T, GLfloat>)
         {
@@ -334,7 +293,7 @@ public:
     }
 
     template<concepts::any_of<GLfloat, GLint, GLuint> T, glm::qualifier Q>
-    void set_uniform(GLint location, const glm::tmat2x2<T, Q>& u, bool transpose = false) const noexcept
+    void set_uniform(GLint location, const glm::mat<2, 2, T, Q>& u, bool transpose = false) const noexcept
     {
         if constexpr (std::same_as<T, GLfloat>)
         {
@@ -351,7 +310,7 @@ public:
     }
 
     template<concepts::any_of<GLfloat, GLint, GLuint> T, glm::qualifier Q>
-    void set_uniform(GLint location, const glm::tmat3x3<T, Q>& u, bool transpose = false) const noexcept
+    void set_uniform(GLint location, const glm::mat<3, 3, T, Q>& u, bool transpose = false) const noexcept
     {
         if constexpr (std::same_as<T, GLfloat>)
         {
@@ -368,7 +327,7 @@ public:
     }
 
     template<concepts::any_of<GLfloat, GLint, GLuint> T, glm::qualifier Q>
-    void set_uniform(GLint location, const glm::tmat4x4<T, Q>& u, bool transpose = false) const noexcept
+    void set_uniform(GLint location, const glm::mat<4, 4, T, Q>& u, bool transpose = false) const noexcept
     {
         if constexpr (std::same_as<T, GLfloat>)
         {
@@ -385,7 +344,6 @@ public:
     }
 
 private:
-    handle_type m_handle;
+    handle_type m_handle{};
 };
-
 } // namespace flow::gl

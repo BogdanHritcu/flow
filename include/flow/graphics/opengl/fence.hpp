@@ -4,50 +4,45 @@
 
 #include "../../utility/unique_handle.hpp"
 
-namespace flow {
-namespace gl {
-
-    class fence
+namespace flow::gl {
+class fence
+{
+public:
+    using id_type = GLsync;
+    using deleter_type = decltype([](id_type id)
     {
-    public:
-        using id_type = GLsync;
-        // clang-format off
-        using deleter_type = decltype([](id_type id) { glDeleteSync(id); });
-        // clang-format on
-        using handle_type = unique_handle<id_type, deleter_type>;
+        glDeleteSync(id);
+    });
+    using handle_type = unique_handle<id_type, deleter_type>;
 
-    public:
-        constexpr fence() noexcept
-            : m_handle{}
-        {}
+public:
+    constexpr fence() noexcept = default;
 
-        bool lock() noexcept
+    bool lock() noexcept
+    {
+        id_type id = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+        m_handle.reset(id);
+
+        return id != nullptr;
+    }
+
+    void wait() const noexcept
+    {
+        if (!m_handle.get())
         {
-            id_type id = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
-            m_handle.reset(id);
-
-            return id != nullptr;
+            return;
         }
 
-        void wait() const noexcept
+        GLenum result{};
+
+        do
         {
-            if (!m_handle.get())
-            {
-                return;
-            }
-
-            GLenum result{};
-
-            do
-            {
-                result = glClientWaitSync(m_handle.get(), GL_SYNC_FLUSH_COMMANDS_BIT, 1);
-            }
-            while (result != GL_ALREADY_SIGNALED && result != GL_CONDITION_SATISFIED);
+            result = glClientWaitSync(m_handle.get(), GL_SYNC_FLUSH_COMMANDS_BIT, 1);
         }
+        while (result != GL_ALREADY_SIGNALED && result != GL_CONDITION_SATISFIED);
+    }
 
-    private:
-        handle_type m_handle;
-    };
-
-} // namespace gl
-} // namespace flow
+private:
+    handle_type m_handle{};
+};
+} // namespace flow::gl
