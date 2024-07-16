@@ -1,4 +1,5 @@
 # Build
+cmake-build-*/
 [Bb]uild/
 [Bb]in/
 [Oo]bj/
@@ -19,6 +20,9 @@ x64/
 .vscode/
 .history/
 *.code-workspace
+
+# CLion
+.idea/
 
 # Other
 .cache/
