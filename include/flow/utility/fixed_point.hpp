@@ -9,10 +9,9 @@
 #include "sized_int.hpp"
 
 namespace flow {
-
 template<std::integral T, std::size_t FractionBitCount>
     requires concepts::doubled_width_integral<T>
-          && (std::numeric_limits<T>::digits >= FractionBitCount)
+    && (std::numeric_limits<T>::digits >= FractionBitCount)
 class basic_fixed_point
 {
 public:
@@ -24,13 +23,11 @@ public:
 
     template<std::integral U>
     constexpr basic_fixed_point(U value) noexcept
-        : m_value{ static_cast<underlying_type>(value << fraction_bit_count) }
-    {}
+        : m_value{ static_cast<underlying_type>(value << fraction_bit_count) } {}
 
     template<std::floating_point U>
     constexpr basic_fixed_point(U value) noexcept
-        : m_value{ static_cast<underlying_type>(value * static_cast<U>(std::make_unsigned_t<underlying_type>{ 1 } << fraction_bit_count)) }
-    {}
+        : m_value{ static_cast<underlying_type>(value * static_cast<U>(std::make_unsigned_t<underlying_type>{ 1 } << fraction_bit_count)) } {}
 
     template<std::integral U>
     [[nodiscard]] explicit constexpr operator U() const noexcept
@@ -63,8 +60,8 @@ public:
         using dw_integral = make_doubled_width_integral_t<underlying_type>;
 
         m_value = static_cast<underlying_type>((static_cast<dw_integral>(m_value)
-                                                * static_cast<dw_integral>(other.m_value))
-                                               >> fraction_bit_count);
+                * static_cast<dw_integral>(other.m_value))
+            >> fraction_bit_count);
 
         return *this;
     }
@@ -74,7 +71,7 @@ public:
         using dw_integral = make_doubled_width_integral_t<underlying_type>;
 
         m_value = static_cast<underlying_type>((static_cast<dw_integral>(m_value) << fraction_bit_count)
-                                               / static_cast<dw_integral>(other.m_value));
+            / static_cast<dw_integral>(other.m_value));
 
         return *this;
     }
@@ -108,7 +105,7 @@ public:
 
     [[nodiscard]] friend constexpr auto operator<=>(basic_fixed_point lhs, basic_fixed_point rhs) noexcept = default;
 
-    [[nodiscard]] constexpr operator bool() const noexcept
+    [[nodiscard]] explicit constexpr operator bool() const noexcept
     {
         return m_value != 0;
     }
@@ -134,5 +131,4 @@ using ufixed16_16_t = basic_fixed_point<std::uint32_t, 16>;
 using ufixed32_t = ufixed16_16_t;
 
 // NOLINTEND(cppcoreguidelines-avoid-magic-numbers)
-
 } // namespace flow

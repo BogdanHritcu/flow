@@ -6,9 +6,8 @@
 #include "concepts.hpp"
 
 namespace flow {
-
 template<concepts::nothrow_default_constructible HandleT,
-         concepts::nothrow_default_constructible DeleterT>
+    concepts::nothrow_default_constructible DeleterT>
 class unique_handle
 {
 public:
@@ -16,20 +15,16 @@ public:
     using deleter_type = DeleterT;
 
 public:
-    constexpr unique_handle(handle_type handle) noexcept
-        : m_pair{ handle, deleter_type{} }
-    {}
+    constexpr unique_handle() noexcept = default;
 
-    constexpr unique_handle() noexcept
-        : unique_handle(handle_type{})
-    {}
+    explicit constexpr unique_handle(handle_type handle) noexcept
+        : m_pair{ handle, deleter_type{} } {}
 
     constexpr unique_handle(const unique_handle& other) = delete;
     constexpr unique_handle& operator=(const unique_handle& other) = delete;
 
     constexpr unique_handle(unique_handle&& other) noexcept
-        : m_pair{ other.release(), other.get_deleter() }
-    {}
+        : m_pair{ other.release(), other.get_deleter() } {}
 
     constexpr unique_handle& operator=(unique_handle&& other) noexcept
     {
@@ -91,7 +86,6 @@ public:
     }
 
 private:
-    compressed_pair<handle_type, deleter_type> m_pair;
+    compressed_pair<handle_type, deleter_type> m_pair{};
 };
-
 } // namespace flow

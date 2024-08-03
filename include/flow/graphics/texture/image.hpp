@@ -10,7 +10,6 @@
 #include <stb/stb_image.h>
 
 #include "../../utility/concepts.hpp"
-#include "../bounds.hpp"
 
 namespace flow {
 

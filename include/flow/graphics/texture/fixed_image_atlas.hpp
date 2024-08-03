@@ -3,11 +3,9 @@
 #include <algorithm>
 #include <span>
 
-#include "../bounds.hpp"
 #include "image.hpp"
 
 namespace flow {
-
 namespace fs = std::filesystem;
 
 class fixed_image_atlas
@@ -19,9 +17,7 @@ public:
 public:
     constexpr fixed_image_atlas() noexcept
         : m_images{}
-        , m_image_metadata{}
-    {
-    }
+        , m_image_metadata{} {}
 
     bool create(size_type width, size_type height, image_format format) noexcept
     {
@@ -99,5 +95,4 @@ private:
     std::vector<image> m_images;
     image_metadata m_image_metadata;
 };
-
 } // namespace flow
