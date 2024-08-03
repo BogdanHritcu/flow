@@ -59,7 +59,7 @@ private:
     input_system m_input_system{};
     bool m_has_error_state{};
 
-    std::uint32_t m_fixed_update_frequency{};
+    std::uint32_t m_fixed_update_frequency{ 30 };
 
 protected:
     engine_interface engine{}; // NOLINT(*-non-private-member-variables-in-classes)
