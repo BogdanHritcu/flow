@@ -170,7 +170,7 @@ target_link_libraries(flow PUBLIC glad
         EnTT
         box2d)
 
-set_target_properties(glad glfw update_mappings glm stb spdlog EnTT PROPERTIES FOLDER "extern")
+set_target_properties(glad glfw update_mappings glm stb spdlog EnTT box2d PROPERTIES FOLDER "extern")
 
 # sandbox
 
