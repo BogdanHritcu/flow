@@ -2,7 +2,6 @@
 
 #include <functional>
 #include <ostream>
-#include <ranges>
 #include <span>
 
 #include "concepts.hpp"
@@ -81,10 +80,10 @@ public:
         return *this;
     }
 
-    template<typename T, typename Traits = serialization_traits<T>>
+    template<typename T>
     ostream_view& serialize(const T& data)
     {
-        return serialize(data, serializer<T, Traits>{});
+        return serialize(data, serializer<T>{});
     }
 
     ostream_view& seek(pos_type position)
@@ -152,43 +151,12 @@ private:
     std::ostream* m_out{ nullptr };
 };
 
-template<concepts::trivially_copyable T, typename Traits>
-struct serializer<T, Traits>
+template<concepts::trivially_copyable T>
+struct serializer<T>
 {
     void operator()(ostream_view out, const T& data) const
     {
         out.write(data);
-    }
-};
-
-template<concepts::trivially_copyable_data_sized_range R, typename Traits>
-    requires(!concepts::trivially_copyable<R>)
-struct serializer<R, Traits>
-{
-    using size_type = typename Traits::size_type;
-
-    void operator()(ostream_view out, const R& range) const
-    {
-        const auto size = static_cast<size_type>(std::ranges::size(range));
-        out.write(size);
-        out.write(std::span{ range | std::views::take(size) });
-    }
-};
-
-template<concepts::non_trivially_copyable_data_sized_range R, typename Traits>
-struct serializer<R, Traits>
-{
-    using size_type = typename Traits::size_type;
-
-    void operator()(ostream_view out, const R& range) const
-    {
-        const auto size = static_cast<size_type>(std::ranges::size(range));
-        out.write(size);
-
-        for (const auto& e : range | std::views::take(size))
-        {
-            out.serialize(e);
-        }
     }
 };
 

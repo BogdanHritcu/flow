@@ -1,6 +1,5 @@
 #pragma once
 
-#include <istream>
 #include <span>
 
 #include "concepts.hpp"

@@ -1,7 +1,6 @@
 #pragma once
 
 #include <functional>
-#include <ios>
 #include <istream>
 #include <span>
 
@@ -70,10 +69,10 @@ public:
         return *this;
     }
 
-    template<typename T, typename Traits = serialization_traits<T>>
+    template<typename T>
     istream_view& deserialize(T& data)
     {
-        return deserialize(data, deserializer<T, Traits>{});
+        return deserialize(data, deserializer<T>{});
     }
 
     istream_view& seek(pos_type position)
@@ -141,47 +140,12 @@ private:
     std::istream* m_in{ nullptr };
 };
 
-template<concepts::trivially_copyable T, typename Traits>
-struct deserializer<T, Traits>
+template<concepts::trivially_copyable T>
+struct deserializer<T>
 {
     void operator()(istream_view in, T& data) const
     {
         in.read(data);
-    }
-};
-
-template<concepts::trivially_copyable_data_resizable_range R, typename Traits>
-    requires(!concepts::trivially_copyable<R>)
-struct deserializer<R, Traits>
-{
-    using size_type = typename Traits::size_type;
-
-    void operator()(istream_view in, R& range) const
-    {
-        size_type size{};
-        in.read(size);
-
-        range.resize(size);
-        in.read(std::span{ range });
-    }
-};
-
-template<concepts::non_trivially_copyable_data_resizable_range R, typename Traits>
-struct deserializer<R, Traits>
-{
-    using size_type = typename Traits::size_type;
-
-    void operator()(istream_view in, R& range) const
-    {
-        size_type size{};
-        in.read(size);
-
-        range.resize(size);
-
-        for (auto& e : range)
-        {
-            in.deserialize(e);
-        }
     }
 };
 
