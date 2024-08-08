@@ -83,6 +83,7 @@ set(FLOW_HEADERS "include/flow/core/application.hpp"
         "include/flow/utility/traits.hpp"
         "include/flow/utility/unique_handle.hpp"
         "include/flow/utility/unit.hpp"
+        "include/flow/utility/unordered_map_serialization.hpp"
         "include/flow/utility/uuid.hpp"
         "include/flow/utility/vector_serialization.hpp")
 
