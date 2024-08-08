@@ -30,6 +30,8 @@ struct deserializer<std::vector<T, AllocatorT>>
         }
         else
         {
+            v.clear();
+
             for (size_type i = 0; i < size; ++i)
             {
                 T e;
