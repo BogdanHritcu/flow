@@ -83,7 +83,8 @@ set(FLOW_HEADERS "include/flow/core/application.hpp"
         "include/flow/utility/traits.hpp"
         "include/flow/utility/unique_handle.hpp"
         "include/flow/utility/unit.hpp"
-        "include/flow/utility/uuid.hpp")
+        "include/flow/utility/uuid.hpp"
+        "include/flow/utility/vector_serialization.hpp")
 
 set(FLOW_DATA_DIR "${CMAKE_CURRENT_SOURCE_DIR}/data")
 if (NOT PROJECT_IS_TOP_LEVEL)
