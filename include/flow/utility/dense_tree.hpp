@@ -11,6 +11,7 @@
 #include "istream_view.hpp"
 #include "ostream_view.hpp"
 #include "traits.hpp"
+#include "vector_serialization.hpp"
 
 namespace flow {
 
@@ -446,7 +447,7 @@ private:
     [[nodiscard]] constexpr bool has_children(index_type index) const noexcept
     {
         return (index < m_node_slots.size() && is_node(m_node_slots[index].indices.first_child))
-            || (index == before_begin_index && is_node(m_root_index));
+                || (index == before_begin_index && is_node(m_root_index));
     }
 
     [[nodiscard]] constexpr bool has_siblings(index_type index) const noexcept
@@ -457,8 +458,8 @@ private:
     [[nodiscard]] constexpr bool is_node(index_type index) const noexcept
     {
         return index < m_node_slots.size()
-            && ((index != m_root_index && is_valid_non_root(m_node_slots[index]))
-                || (index == m_root_index && is_valid_root(m_node_slots[index])));
+                && ((index != m_root_index && is_valid_non_root(m_node_slots[index]))
+                    || (index == m_root_index && is_valid_root(m_node_slots[index])));
     }
 
     [[nodiscard]] constexpr index_type find_free_slot() noexcept
@@ -571,16 +572,16 @@ private:
     [[nodiscard]] static constexpr bool is_valid_root(const node_type& node) noexcept
     {
         return node.indices.parent == before_begin_index
-            && node.indices.first_child != before_begin_index
-            && node.indices.next_sibling == end_index;
+                && node.indices.first_child != before_begin_index
+                && node.indices.next_sibling == end_index;
     }
 
     [[nodiscard]] static constexpr bool is_valid_non_root(const node_type& node) noexcept
     {
         return node.indices.parent != before_begin_index
-            && node.indices.parent != end_index
-            && node.indices.first_child != before_begin_index
-            && node.indices.next_sibling != before_begin_index;
+                && node.indices.parent != end_index
+                && node.indices.first_child != before_begin_index
+                && node.indices.next_sibling != before_begin_index;
     }
 
     static constexpr void invalidate_node(node_type& node) noexcept
@@ -660,48 +661,13 @@ template<typename T,
          std::unsigned_integral IndexT,
          bool OrderedChildren,
          typename ChildrenCompT>
-struct serialization_traits<dense_tree<T, IndexT, OrderedChildren, ChildrenCompT>>
-{
-    using size_type = IndexT;
-};
-
-template<typename T,
-         std::unsigned_integral IndexT,
-         bool OrderedChildren,
-         typename ChildrenCompT>
 struct serializer<dense_tree<T, IndexT, OrderedChildren, ChildrenCompT>>
 {
-    using tree_type = dense_tree<T, IndexT, OrderedChildren, ChildrenCompT>;
-    using node_type = typename tree_type::node_type;
-    using traits = serialization_traits<tree_type>;
-
-    void operator()(ostream_view out, const tree_type& t) const
+    void operator()(ostream_view out, const dense_tree<T, IndexT, OrderedChildren, ChildrenCompT>& t) const
     {
         out.serialize(t.m_root_index);
-
-        if constexpr (concepts::trivially_copyable<node_type>)
-        {
-            using nodes_container_type = decltype(t.m_node_slots);
-            out.serialize<nodes_container_type, traits>(t.m_node_slots);
-        }
-        else
-        {
-            const auto size = static_cast<IndexT>(t.m_node_slots.size());
-            out.serialize(size);
-
-            for (const auto& node : t.m_node_slots | std::views::take(size))
-            {
-                out.serialize(node,
-                              [](ostream_view out, const node_type& n)
-                              {
-                                  out.serialize(n.value)
-                                      .serialize(n.indices);
-                              });
-            }
-        }
-
-        using indices_container_type = decltype(t.m_free_slot_indices);
-        out.serialize<indices_container_type, traits>(t.m_free_slot_indices);
+        out.serialize(t.m_node_slots);
+        out.serialize(t.m_free_slot_indices);
     }
 };
 
@@ -711,39 +677,11 @@ template<typename T,
          typename ChildrenCompT>
 struct deserializer<dense_tree<T, IndexT, OrderedChildren, ChildrenCompT>>
 {
-    using tree_type = dense_tree<T, IndexT, OrderedChildren, ChildrenCompT>;
-    using node_type = typename tree_type::node_type;
-    using traits = serialization_traits<tree_type>;
-
-    void operator()(istream_view in, tree_type& t) const
+    void operator()(istream_view in, dense_tree<T, IndexT, OrderedChildren, ChildrenCompT>& t) const
     {
         in.deserialize(t.m_root_index);
-
-        if constexpr (concepts::trivially_copyable<node_type>)
-        {
-            using nodes_container_type = decltype(t.m_node_slots);
-            in.deserialize<nodes_container_type, traits>(t.m_node_slots);
-        }
-        else
-        {
-            IndexT size{};
-            in.deserialize(size);
-
-            t.m_node_slots.resize(size);
-
-            for (const auto& node : t.m_node_slots)
-            {
-                in.deserialize(node,
-                               [](istream_view in, node_type& n)
-                               {
-                                   in.deserialize(n.value)
-                                       .deserialize(n.indices);
-                               });
-            }
-        }
-
-        using indices_container_type = decltype(t.m_free_slot_indices);
-        in.deserialize<indices_container_type, traits>(t.m_free_slot_indices);
+        in.deserialize(t.m_node_slots);
+        in.deserialize(t.m_free_slot_indices);
     }
 };
 
