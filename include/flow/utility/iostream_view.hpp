@@ -84,10 +84,10 @@ public:
         return *this;
     }
 
-    template<typename T, typename Traits = serialization_traits<T>>
+    template<typename T>
     iostream_view& serialize(const T& data)
     {
-        return serialize(data, serializer<T, Traits>{});
+        return serialize(data, serializer<T>{});
     }
 
     template<typename T, concepts::deserializer<T> DeserializerT>
@@ -98,10 +98,10 @@ public:
         return *this;
     }
 
-    template<typename T, typename Traits = serialization_traits<T>>
+    template<typename T>
     iostream_view& deserialize(T& data)
     {
-        return deserialize(data, deserializer<T, Traits>{});
+        return deserialize(data, deserializer<T>{});
     }
 
     iostream_view& seekg(pos_type position)
