@@ -86,6 +86,22 @@ public:
         return serialize(data, serializer<T>{});
     }
 
+    template<typename T, concepts::serializer<T> SerializerT>
+    ostream_view& serialize(std::span<const T> span, SerializerT serializer)
+    {
+        if (good())
+        {
+            std::invoke(serializer, *this, span);
+        }
+        return *this;
+    }
+
+    template<typename T>
+    ostream_view& serialize(std::span<const T> span)
+    {
+        return serialize(span, serializer<T>{});
+    }
+
     ostream_view& seek(pos_type position)
     {
         if (good())
@@ -157,6 +173,25 @@ struct serializer<T>
     void operator()(ostream_view out, const T& data) const
     {
         out.write(data);
+    }
+};
+
+template<typename T>
+struct serializer<std::span<const T>>
+{
+    void operator()(ostream_view out, std::span<const T> span) const
+    {
+        if (concepts::trivially_copyable<T>)
+        {
+            out.write(span);
+        }
+        else
+        {
+            for (const auto& e : span)
+            {
+                out.serialize(e);
+            }
+        }
     }
 };
 

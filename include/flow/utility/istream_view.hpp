@@ -75,6 +75,22 @@ public:
         return deserialize(data, deserializer<T>{});
     }
 
+    template<typename T, concepts::deserializer<T> DeserializerT>
+    istream_view& deserialize(std::span<T> span, DeserializerT deserializer)
+    {
+        if (good())
+        {
+            std::invoke(deserializer, *this, span);
+        }
+        return *this;
+    }
+
+    template<typename T>
+    istream_view& deserialize(std::span<T> span)
+    {
+        return deserialize(span, deserializer<T>{});
+    }
+
     istream_view& seek(pos_type position)
     {
         if (good())
@@ -146,6 +162,25 @@ struct deserializer<T>
     void operator()(istream_view in, T& data) const
     {
         in.read(data);
+    }
+};
+
+template<typename T>
+struct deserializer<std::span<T>>
+{
+    void operator()(istream_view in, std::span<T> span) const
+    {
+        if (concepts::trivially_copyable<T>)
+        {
+            in.read(span);
+        }
+        else
+        {
+            for (auto& e : span)
+            {
+                in.deserialize(e);
+            }
+        }
     }
 };
 
