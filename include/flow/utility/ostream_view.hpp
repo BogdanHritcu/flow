@@ -99,7 +99,7 @@ public:
     template<typename T>
     ostream_view& serialize(std::span<const T> span)
     {
-        return serialize(span, serializer<T>{});
+        return serialize(span, serializer<std::span<const T>>{});
     }
 
     ostream_view& seek(pos_type position)

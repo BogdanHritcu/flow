@@ -88,7 +88,7 @@ public:
     template<typename T>
     istream_view& deserialize(std::span<T> span)
     {
-        return deserialize(span, deserializer<T>{});
+        return deserialize(span, deserializer<std::span<T>>{});
     }
 
     istream_view& seek(pos_type position)
