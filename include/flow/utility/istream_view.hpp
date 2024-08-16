@@ -40,7 +40,7 @@ public:
     template<concepts::trivially_copyable T>
     istream_view& read(T& data)
     {
-        if (good())
+        if (m_in)
         {
             // NOLINTNEXTLINE(*-reinterpret-cast)
             m_in->read(reinterpret_cast<char*>(&data), sizeof(data));
@@ -51,7 +51,7 @@ public:
     template<concepts::trivially_copyable T>
     istream_view& read(std::span<T> span)
     {
-        if (good())
+        if (m_in)
         {
             // NOLINTNEXTLINE(*-reinterpret-cast)
             m_in->read(reinterpret_cast<char*>(span.data()), span.size_bytes());
@@ -62,10 +62,7 @@ public:
     template<typename T, concepts::deserializer<T> DeserializerT>
     istream_view& deserialize(T& data, DeserializerT deserializer)
     {
-        if (good())
-        {
-            std::invoke(deserializer, *this, data);
-        }
+        std::invoke(deserializer, *this, data);
         return *this;
     }
 
@@ -78,10 +75,7 @@ public:
     template<typename T, concepts::deserializer<T> DeserializerT>
     istream_view& deserialize(std::span<T> span, DeserializerT deserializer)
     {
-        if (good())
-        {
-            std::invoke(deserializer, *this, span);
-        }
+        std::invoke(deserializer, *this, span);
         return *this;
     }
 
@@ -93,7 +87,7 @@ public:
 
     istream_view& seek(pos_type position)
     {
-        if (good())
+        if (m_in)
         {
             m_in->seekg(position);
         }
@@ -102,7 +96,7 @@ public:
 
     istream_view& seek(off_type offset, seekdir direction)
     {
-        if (good())
+        if (m_in)
         {
             m_in->seekg(offset, direction);
         }
@@ -111,7 +105,7 @@ public:
 
     [[nodiscard]] pos_type tell()
     {
-        return good() ? m_in->tellg() : pos_type{ 0 };
+        return m_in ? m_in->tellg() : pos_type{ -1 };
     }
 
     [[nodiscard]] bool good() const

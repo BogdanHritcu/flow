@@ -40,7 +40,7 @@ public:
     template<concepts::trivially_copyable T>
     ostream_view& write(const T& data)
     {
-        if (good())
+        if (m_out)
         {
             // NOLINTNEXTLINE(*-reinterpret-cast)
             m_out->write(reinterpret_cast<const char*>(&data), sizeof(data));
@@ -51,7 +51,7 @@ public:
     template<concepts::trivially_copyable T>
     ostream_view& write(std::span<T> span)
     {
-        if (good())
+        if (m_out)
         {
             // NOLINTNEXTLINE(*-reinterpret-cast)
             m_out->write(reinterpret_cast<const char*>(span.data()), span.size_bytes());
@@ -62,7 +62,7 @@ public:
     template<concepts::trivially_copyable T>
     ostream_view& write(std::span<const T> span)
     {
-        if (good())
+        if (m_out)
         {
             // NOLINTNEXTLINE(*-reinterpret-cast)
             m_out->write(reinterpret_cast<const char*>(span.data()), span.size_bytes());
@@ -73,10 +73,7 @@ public:
     template<typename T, concepts::serializer<T> SerializerT>
     ostream_view& serialize(const T& data, SerializerT serializer)
     {
-        if (good())
-        {
-            std::invoke(serializer, *this, data);
-        }
+        std::invoke(serializer, *this, data);
         return *this;
     }
 
@@ -89,10 +86,7 @@ public:
     template<typename T, concepts::serializer<T> SerializerT>
     ostream_view& serialize(std::span<const T> span, SerializerT serializer)
     {
-        if (good())
-        {
-            std::invoke(serializer, *this, span);
-        }
+        std::invoke(serializer, *this, span);
         return *this;
     }
 
@@ -104,7 +98,7 @@ public:
 
     ostream_view& seek(pos_type position)
     {
-        if (good())
+        if (m_out)
         {
             m_out->seekp(position);
         }
@@ -113,7 +107,7 @@ public:
 
     ostream_view& seek(off_type offset, seekdir direction)
     {
-        if (good())
+        if (m_out)
         {
             m_out->seekp(offset, direction);
         }
@@ -122,7 +116,7 @@ public:
 
     [[nodiscard]] pos_type tell()
     {
-        return good() ? m_out->tellp() : pos_type{ 0 };
+        return m_out ? m_out->tellp() : pos_type{ -1 };
     }
 
     [[nodiscard]] bool good() const

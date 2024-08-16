@@ -140,40 +140,37 @@ public:
 
     [[nodiscard]] bool good() const
     {
-        return m_in_out && m_in_out->good();
+        return istream_view(m_in_out).good();
     }
 
     [[nodiscard]] bool eof() const
     {
-        return !m_in_out || m_in_out->eof();
+        return istream_view(m_in_out).eof();
     }
 
     [[nodiscard]] bool fail() const
     {
-        return !m_in_out || m_in_out->fail();
+        return istream_view(m_in_out).fail();
     }
 
     [[nodiscard]] bool bad() const
     {
-        return !m_in_out || m_in_out->bad();
+        return istream_view(m_in_out).bad();
     }
 
     [[nodiscard]] bool operator!() const
     {
-        return fail();
+        return istream_view(m_in_out).operator!();
     }
 
     [[nodiscard]] explicit operator bool() const
     {
-        return !fail();
+        return istream_view(m_in_out).operator bool();
     }
 
     void clear(iostate state = goodbit)
     {
-        if (m_in_out)
-        {
-            m_in_out->clear(state);
-        }
+        istream_view(m_in_out).clear(state);
     }
 
     [[nodiscard]] constexpr operator istream_view() const noexcept
