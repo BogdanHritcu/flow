@@ -147,12 +147,12 @@ public:
 
     [[nodiscard]] bool operator!() const
     {
-        return fail();
+        return !m_out || m_out->operator!();
     }
 
     [[nodiscard]] explicit operator bool() const
     {
-        return !fail();
+        return m_out && m_out->operator bool();
     }
 
     void clear(iostate state = goodbit)
