@@ -136,12 +136,12 @@ public:
 
     [[nodiscard]] bool operator!() const
     {
-        return !m_in || m_in->operator!();
+        return fail();
     }
 
     [[nodiscard]] explicit operator bool() const
     {
-        return m_in && m_in->operator bool();
+        return !fail();
     }
 
     void clear(iostate state = goodbit)
