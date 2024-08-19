@@ -85,6 +85,12 @@ struct basic_vec2
         return { x, y };
     }
 
+    template<typename U>
+    [[nodiscard]] explicit constexpr operator basic_vec2<U>() const noexcept
+    {
+        return { static_cast<U>(x), static_cast<U>(y) };
+    }
+
     [[nodiscard]] friend constexpr basic_vec2 operator+(basic_vec2 a, const basic_vec2& b) noexcept(noexcept(a += b))
     {
         return a += b;
