@@ -73,6 +73,7 @@ public:
     void set_projection(float left, float right, float bottom, float top, float z_near = -1.0f, float z_far = 1.0f) noexcept
     {
         m_projection = glm::ortho(left, right, bottom, top, z_near, z_far);
+        update_view_projection();
     }
 
     [[nodiscard]] constexpr const glm::vec3& position() const noexcept
@@ -90,15 +91,34 @@ public:
         return m_view;
     }
 
+    [[nodiscard]] constexpr const glm::mat4& view_projection() const noexcept
+    {
+        return m_view_projection;
+    }
+
+    [[nodiscard]] constexpr const glm::mat4& inv_view_projection() const noexcept
+    {
+        return m_inv_view_projection;
+    }
+
 private:
     void update_view() noexcept
     {
         m_view = glm::lookAt(m_position, glm::vec3(m_position.x, m_position.y, m_position.z - 1.0f), m_up);
+        update_view_projection();
+    }
+
+    void update_view_projection() noexcept
+    {
+        m_view_projection = m_projection * m_view;
+        m_inv_view_projection = glm::inverse(m_view_projection);
     }
 
 private:
     glm::mat4 m_projection{ glm::identity<glm::mat4>() };
     glm::mat4 m_view{ glm::identity<glm::mat4>() };
+    glm::mat4 m_view_projection{ glm::identity<glm::mat4>() };
+    glm::mat4 m_inv_view_projection{ glm::identity<glm::mat4>() };
     glm::vec3 m_position{ 0.0f, 0.0f, 0.0f };
     glm::vec3 m_up{ 0.0f, 1.0f, 0.0f };
 };
