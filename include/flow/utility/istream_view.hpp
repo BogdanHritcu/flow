@@ -72,7 +72,7 @@ public:
         return deserialize(data, deserializer<T>{});
     }
 
-    template<typename T, concepts::deserializer<T> DeserializerT>
+    template<typename T, concepts::deserializer<std::span<T>> DeserializerT>
     istream_view& deserialize(std::span<T> span, DeserializerT deserializer)
     {
         std::invoke(deserializer, *this, span);

@@ -83,7 +83,7 @@ public:
         return serialize(data, serializer<T>{});
     }
 
-    template<typename T, concepts::serializer<T> SerializerT>
+    template<typename T, concepts::serializer<std::span<T>> SerializerT>
     ostream_view& serialize(std::span<T> span, SerializerT serializer)
     {
         std::invoke(serializer, *this, span);
@@ -96,7 +96,7 @@ public:
         return serialize(span, serializer<std::span<T>>{});
     }
 
-    template<typename T, concepts::serializer<T> SerializerT>
+    template<typename T, concepts::serializer<std::span<const T>> SerializerT>
     ostream_view& serialize(std::span<const T> span, SerializerT serializer)
     {
         std::invoke(serializer, *this, span);
