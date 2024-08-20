@@ -45,10 +45,10 @@ namespace detail {
     };
 
     template<std::size_t N, typename T>
-    inline constexpr double GradParam = static_cast<T>(1);
+    inline constexpr T GradParam = static_cast<T>(1);
 
     template<typename T>
-    inline constexpr double GradParam<2, T> = static_cast<T>(0.01001634121365712);
+    inline constexpr T GradParam<2, T> = static_cast<T>(0.01001634121365712);
 
     template<std::size_t N, typename T>
     inline constexpr std::array<gradient_type<N, T>, 1> gradient_samples{};
@@ -130,6 +130,8 @@ public:
     using permutation_type = std::int16_t;
 
 public:
+    constexpr open_simplex() noexcept = default;
+
     constexpr open_simplex(std::uint64_t seed)
     {
         m_permutations.resize(PermN);
