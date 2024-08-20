@@ -84,6 +84,19 @@ public:
     }
 
     template<typename T, concepts::serializer<T> SerializerT>
+    ostream_view& serialize(std::span<T> span, SerializerT serializer)
+    {
+        std::invoke(serializer, *this, span);
+        return *this;
+    }
+
+    template<typename T>
+    ostream_view& serialize(std::span<T> span)
+    {
+        return serialize(span, serializer<std::span<T>>{});
+    }
+
+    template<typename T, concepts::serializer<T> SerializerT>
     ostream_view& serialize(std::span<const T> span, SerializerT serializer)
     {
         std::invoke(serializer, *this, span);
@@ -167,6 +180,25 @@ struct serializer<T>
     void operator()(ostream_view out, const T& data) const
     {
         out.write(data);
+    }
+};
+
+template<typename T>
+struct serializer<std::span<T>>
+{
+    void operator()(ostream_view out, std::span<T> span) const
+    {
+        if (concepts::trivially_copyable<T>)
+        {
+            out.write(span);
+        }
+        else
+        {
+            for (const auto& e : span)
+            {
+                out.serialize(e);
+            }
+        }
     }
 };
 
