@@ -153,16 +153,13 @@ set(SPDLOG_USE_STD_FORMAT ON CACHE BOOL "Use std::format instead of fmt library"
 add_subdirectory(extern/spdlog)
 target_compile_definitions(flow PUBLIC "B2_USER_SETTINGS")
 
-# entt
-add_subdirectory(extern/entt)
 target_link_libraries(flow PUBLIC glad
         glfw
         glm
         stb
-        spdlog
-        EnTT)
+        spdlog)
 
-set_target_properties(glad glfw update_mappings glm stb spdlog EnTT PROPERTIES FOLDER "extern")
+set_target_properties(glad glfw update_mappings glm stb spdlog PROPERTIES FOLDER "extern")
 
 # sandbox
 

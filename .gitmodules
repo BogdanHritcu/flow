@@ -18,7 +18,3 @@
 	path = extern/spdlog
 	url = https://github.com/BogdanHritcu/spdlog.git
 	branch = flow_001
-[submodule "extern/entt"]
-	path = extern/entt
-	url = https://github.com/BogdanHritcu/entt.git
-	branch = flow_001
