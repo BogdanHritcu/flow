@@ -7,7 +7,7 @@ namespace flow {
 
 namespace fs = std::filesystem;
 
-[[nodiscard]] bool file_has_read_write_permissions(const fs::path& path) noexcept
+[[nodiscard]] inline bool file_has_read_write_permissions(const fs::path& path) noexcept
 {
     std::error_code error{};
     auto status = fs::status(path, error);
@@ -18,7 +18,7 @@ namespace fs = std::filesystem;
             && perms != fs::perms::none;
 }
 
-bool create_path(const fs::path& path, bool delete_existing_file = false)
+inline bool create_path(const fs::path& path, bool delete_existing_file = false)
 {
     std::error_code error{};
     auto parent_path = path.parent_path();
