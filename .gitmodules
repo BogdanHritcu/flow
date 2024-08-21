@@ -22,7 +22,3 @@
 	path = extern/entt
 	url = https://github.com/BogdanHritcu/entt.git
 	branch = flow_001
-[submodule "extern/box2d"]
-	path = extern/box2d
-	url = https://github.com/BogdanHritcu/box2d.git
-	branch = flow_001

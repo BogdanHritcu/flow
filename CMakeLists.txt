@@ -56,10 +56,6 @@ set(FLOW_HEADERS "include/flow/core/application.hpp"
         "include/flow/input/input_context.hpp"
         "include/flow/math/vec2.hpp"
         "include/flow/math/vec2_math.hpp"
-        "include/flow/physics/body.hpp"
-        "include/flow/physics/dynamic_body.hpp"
-        "include/flow/physics/static_body.hpp"
-        "include/flow/physics/world.hpp"
         "include/flow/utility/buddy_partitioner.hpp"
         "include/flow/utility/compressed_pair.hpp"
         "include/flow/utility/concepts.hpp"
@@ -159,24 +155,14 @@ target_compile_definitions(flow PUBLIC "B2_USER_SETTINGS")
 
 # entt
 add_subdirectory(extern/entt)
-
-# box2d
-set(BOX2D_BUILD_UNIT_TESTS OFF CACHE BOOL "Build the Box2D unit tests")
-set(BOX2D_BUILD_DOCS OFF CACHE BOOL "Build the Box2D documentation")
-set(BOX2D_USER_SETTINGS ON CACHE BOOL "Override Box2D settings with b2UserSettings.h")
-
-add_subdirectory(extern/box2d)
-target_compile_definitions(flow PUBLIC "BOX2D")
-
 target_link_libraries(flow PUBLIC glad
         glfw
         glm
         stb
         spdlog
-        EnTT
-        box2d)
+        EnTT)
 
-set_target_properties(glad glfw update_mappings glm stb spdlog EnTT box2d PROPERTIES FOLDER "extern")
+set_target_properties(glad glfw update_mappings glm stb spdlog EnTT PROPERTIES FOLDER "extern")
 
 # sandbox
 
