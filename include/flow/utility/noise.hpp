@@ -115,6 +115,9 @@ namespace detail {
 
 } // namespace detail
 
+// open simplex noise implementation based on:
+// https://github.com/KdotJPG/OpenSimplex2
+
 template<std::size_t N, typename T = double, std::size_t PermN = 2048>
     requires(N >= 1 && N <= 3)
 class open_simplex
