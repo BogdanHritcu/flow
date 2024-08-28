@@ -19,19 +19,24 @@ public:
         : m_duration{ duration }
     {}
 
-    constexpr void forward(flow::duration dt) noexcept(
-            noexcept(m_t + flow::duration{}) && noexcept(m_t.time_since_epoch()) && noexcept(seek))
+    constexpr void advance(flow::duration dt) noexcept(
+            noexcept(m_t + flow::duration{}) && noexcept(m_t.time_since_epoch()) && noexcept(seek(flow::duration{})))
     {
         seek((m_t + dt).time_since_epoch());
     }
 
-    constexpr void backward(flow::duration dt) noexcept(
-            noexcept(m_t - flow::duration{}) && noexcept(m_t.time_since_epoch()) && noexcept(seek))
+    constexpr void forward(flow::duration dt) noexcept(
+            noexcept(m_t + flow::duration{}) && noexcept(m_t.time_since_epoch()) && noexcept(seek(flow::duration{})))
     {
-        static_assert(std::signed_integral<flow::time_point::rep>);
+        advance(dt);
+    }
+
+    constexpr void backward(flow::duration dt) noexcept(
+            noexcept(m_t - flow::duration{}) && noexcept(m_t.time_since_epoch()) && noexcept(seek(flow::duration{})))
+    {
         static_assert(std::signed_integral<flow::duration::rep>);
 
-        seek((m_t - dt).time_since_epoch());
+        advance(-dt);
     }
 
     constexpr void seek(flow::duration progress) noexcept(
@@ -64,7 +69,7 @@ public:
     }
 
     template<std::floating_point T = float>
-    [[nodiscard]] constexpr T normalized_progress() const noexcept(noexcept(progress) && noexcept(flow::duration::count))
+    [[nodiscard]] constexpr T normalized_progress() const noexcept(noexcept(progress()) && noexcept(m_duration.count()))
     {
         return static_cast<T>(progress().count()) / static_cast<T>(m_duration.count());
     }
