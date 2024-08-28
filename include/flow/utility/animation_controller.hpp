@@ -20,13 +20,13 @@ public:
     {}
 
     constexpr void forward(flow::duration dt) noexcept(
-        noexcept(m_t + flow::duration{}) && noexcept(m_t.time_since_epoch()) && noexcept(seek))
+            noexcept(m_t + flow::duration{}) && noexcept(m_t.time_since_epoch()) && noexcept(seek))
     {
         seek((m_t + dt).time_since_epoch());
     }
 
     constexpr void backward(flow::duration dt) noexcept(
-        noexcept(m_t - flow::duration{}) && noexcept(m_t.time_since_epoch()) && noexcept(seek))
+            noexcept(m_t - flow::duration{}) && noexcept(m_t.time_since_epoch()) && noexcept(seek))
     {
         static_assert(std::signed_integral<flow::time_point::rep>);
         static_assert(std::signed_integral<flow::duration::rep>);
@@ -35,9 +35,9 @@ public:
     }
 
     constexpr void seek(flow::duration progress) noexcept(
-        noexcept(std::clamp(flow::duration{},
-                            flow::duration{},
-                            flow::duration{})) && noexcept(start_time_point + flow::duration{}))
+            noexcept(std::clamp(flow::duration{},
+                                flow::duration{},
+                                flow::duration{})) && noexcept(start_time_point + flow::duration{}))
     {
         auto duration = std::clamp(progress, flow::duration{ 0 }, m_duration);
         m_t = start_time_point + duration;
@@ -67,6 +67,17 @@ public:
     [[nodiscard]] constexpr T normalized_progress() const noexcept(noexcept(progress) && noexcept(flow::duration::count))
     {
         return static_cast<T>(progress().count()) / static_cast<T>(m_duration.count());
+    }
+
+    [[nodiscard]] constexpr bool is_at_start() const noexcept(noexcept(m_t == start_time_point))
+    {
+        return m_t == start_time_point;
+    }
+
+    [[nodiscard]] constexpr bool is_at_end() const noexcept(
+            noexcept(m_t.time_since_epoch()) && noexcept(m_t.time_since_epoch() == m_duration))
+    {
+        return m_t.time_since_epoch() == m_duration;
     }
 
 private:
