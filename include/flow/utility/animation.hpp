@@ -11,7 +11,7 @@ class animation
 public:
     constexpr animation() = default;
 
-    constexpr animation(flow::duration duration, bool reversed = false) noexcept
+    constexpr animation(flow::duration duration, bool reversed) noexcept
         : m_controller{ duration }
         , m_is_reversed{ reversed }
     {}
