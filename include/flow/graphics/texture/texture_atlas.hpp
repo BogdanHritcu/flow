@@ -20,29 +20,27 @@ namespace flow {
 
 namespace fs = std::filesystem;
 
-class texture_atlas
+template<typename TextureDataT>
+class basic_texture_atlas
 {
 public:
     using size_type = image::size_type;
-    using value_type = image::value_type;
+    using texture_data_type = TextureDataT;
 
     struct atlas_metadata
     {
-        struct entry
-        {
-            size_type x;
-            size_type y;
-            size_type width;
-            size_type height;
-        };
-
         image_metadata image_metadata;
         fs::path image_path;
-        std::vector<entry> entries;
+        std::vector<texture_data_type> entries;
     };
 
 public:
-    constexpr texture_atlas() noexcept = default;
+    constexpr basic_texture_atlas() noexcept = default;
+
+    basic_texture_atlas(const fs::path& path)
+    {
+        load(path);
+    }
 
     bool load(const fs::path& path)
     {
@@ -94,8 +92,8 @@ public:
             return false;
         }
 
-        ostream_view ou{ file };
-        if (!ou.serialize(m_metadata))
+        ostream_view out{ file };
+        if (!out.serialize(m_metadata))
         {
             return false;
         }
@@ -103,9 +101,39 @@ public:
         return true;
     }
 
-    [[nodiscard]] constexpr std::optional<atlas_metadata::entry> get_entry(size_type index) const noexcept
+    [[nodiscard]] constexpr size_type size() const noexcept
     {
-        return index < m_metadata.entries.size() ? std::optional{ m_metadata.entries[index] } : std::nullopt;
+        return m_metadata.entries.size();
+    }
+
+    [[nodiscard]] constexpr bool empty() const noexcept
+    {
+        return m_metadata.entries.empty();
+    }
+
+    [[nodiscard]] constexpr size_type width() const noexcept
+    {
+        return m_metadata.image_metadata.width;
+    }
+
+    [[nodiscard]] constexpr size_type height() const noexcept
+    {
+        return m_metadata.image_metadata.height;
+    }
+
+    [[nodiscard]] constexpr size_type channels() const noexcept
+    {
+        return m_metadata.image_metadata.channels;
+    }
+
+    [[nodiscard]] constexpr std::span<const texture_data_type> entries() const noexcept
+    {
+        return m_metadata.entries;
+    }
+
+    [[nodiscard]] constexpr const texture_data_type* entry(size_type index) const noexcept
+    {
+        return index < m_metadata.entries.size() ? &m_metadata.entries[index] : nullptr;
     }
 
     void bind() const noexcept
@@ -118,22 +146,24 @@ private:
     atlas_metadata m_metadata;
 };
 
-struct deserializer<texture_atlas::atlas_metadata>
+template<typename TextureDataT>
+struct deserializer<typename basic_texture_atlas<TextureDataT>::atlas_metadata<TextureDataT>>
 {
-    void operator()(istream_view in, texture_atlas::atlas_metadata& m) const
+    void operator()(istream_view in, typename basic_texture_atlas<TextureDataT>::atlas_metadata& m) const
     {
-        in.deserialize(m.image_metadata)
-                .deserialize(m.image_path)
+        in.deserialize(m.image_path)
+                .deserialize(m.image_metadata)
                 .deserialize(m.entries);
     }
 };
 
-struct serializer<texture_atlas::atlas_metadata>
+template<typename TextureDataT>
+struct serializer<typename basic_texture_atlas<TextureDataT>::atlas_metadata<TextureDataT>>
 {
-    void operator()(ostream_view out, const texture_atlas::atlas_metadata& m) const
+    void operator()(ostream_view out, const typename basic_texture_atlas<TextureDataT>::atlas_metadata& m) const
     {
-        out.serialize(m.image_metadata)
-                .serialize(m.image_path)
+        out.serialize(m.image_path)
+                .serialize(m.image_metadata)
                 .serialize(m.entries);
     }
 };
