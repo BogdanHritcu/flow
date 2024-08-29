@@ -39,21 +39,6 @@ struct image_metadata
     size_type channels;
 };
 
-[[nodiscard]] constexpr bool operator==(const image_metadata& lhs, const image_metadata& rhs) noexcept
-{
-    return lhs.width == rhs.width && lhs.height == rhs.height && lhs.channels == rhs.channels;
-}
-
-[[nodiscard]] constexpr bool operator!=(const image_metadata& lhs, const image_metadata& rhs) noexcept
-{
-    return !(lhs == rhs);
-}
-
-[[nodiscard]] constexpr bool is_empty_metadata(const image_metadata& metadata) noexcept
-{
-    return metadata == image_metadata{ 0, 0, 0 };
-}
-
 class image
 {
 public:
@@ -110,12 +95,12 @@ public:
         return data != nullptr;
     }
 
-    [[nodiscard]] pointer_type data() const noexcept
+    [[nodiscard]] constexpr std::span<value_type> values() noexcept
     {
-        return m_handle.get();
+        return std::span(m_handle.get(), m_metadata.width * m_metadata.height * m_metadata.channels);
     }
 
-    [[nodiscard]] std::span<value_type> span() const noexcept
+    [[nodiscard]] constexpr std::span<const value_type> values() const noexcept
     {
         return std::span(m_handle.get(), m_metadata.width * m_metadata.height * m_metadata.channels);
     }
@@ -145,7 +130,7 @@ public:
         return m_metadata;
     }
 
-    [[nodiscard]] static std::optional<image_metadata> get_info(const fs::path& path) noexcept
+    [[nodiscard]] static std::optional<image_metadata> read_metadata(const fs::path& path) noexcept
     {
         int width{};
         int height{};
@@ -153,7 +138,7 @@ public:
 
         if (!stbi_info(path.string().c_str(), &width, &height, &channels))
         {
-            return {};
+            return std::nullopt;
         }
 
         return image_metadata{
@@ -165,64 +150,6 @@ public:
 
 private:
     handle_type m_handle;
-    image_metadata m_metadata;
-};
-
-class image_view
-{
-public:
-    using value_type = image::value_type;
-    using pointer_type = value_type*;
-    using size_type = image::size_type;
-
-public:
-    constexpr image_view() noexcept
-        : m_pixel_data{}
-        , m_metadata{}
-    {}
-
-    constexpr image_view(std::span<value_type> pixel_data, image_metadata& metadata) noexcept
-        : m_pixel_data{ pixel_data }
-        , m_metadata{ metadata }
-    {}
-
-    image_view(const image& image) noexcept
-        : m_pixel_data{ image.span() }
-        , m_metadata{ image.metadata() }
-    {}
-
-    [[nodiscard]] std::span<value_type> span() const noexcept
-    {
-        return m_pixel_data;
-    }
-
-    [[nodiscard]] constexpr size_type width() const noexcept
-    {
-        return m_metadata.width;
-    }
-
-    [[nodiscard]] constexpr size_type height() const noexcept
-    {
-        return m_metadata.height;
-    }
-
-    [[nodiscard]] constexpr size_type channels() const noexcept
-    {
-        return m_metadata.channels;
-    }
-
-    [[nodiscard]] constexpr image_format format() const noexcept
-    {
-        return static_cast<image_format>(m_metadata.channels);
-    }
-
-    [[nodiscard]] constexpr const image_metadata& metadata() const noexcept
-    {
-        return m_metadata;
-    }
-
-private:
-    std::span<value_type> m_pixel_data;
     image_metadata m_metadata;
 };
 
