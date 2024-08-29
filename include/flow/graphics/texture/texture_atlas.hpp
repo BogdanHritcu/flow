@@ -42,6 +42,11 @@ public:
         load(path);
     }
 
+    basic_texture_atlas(istream_view in)
+    {
+        load(in);
+    }
+
     bool load(const fs::path& path)
     {
         std::fstream file(path, std::ios::binary | std::ios::in);
@@ -50,7 +55,11 @@ public:
             return false;
         }
 
-        istream_view in{ file };
+        return load(file);
+    }
+
+    bool load(istream_view in)
+    {
         if (!in.deserialize(m_metadata))
         {
             return false;
@@ -92,13 +101,12 @@ public:
             return false;
         }
 
-        ostream_view out{ file };
-        if (!out.serialize(m_metadata))
-        {
-            return false;
-        }
+        return save(file);
+    }
 
-        return true;
+    bool save(ostream_view out) const
+    {
+        return static_cast<bool>(out.serialize(m_metadata));
     }
 
     [[nodiscard]] constexpr size_type size() const noexcept
