@@ -28,6 +28,26 @@ public:
         update();
     }
 
+    constexpr void set_duration(flow::duration duration) noexcept
+    {
+        m_controller.set_duration(duration);
+    }
+
+    constexpr void set_reversed(bool value) noexcept
+    {
+        m_is_reversed = value;
+    }
+
+    constexpr void seek(flow::duration progress) noexcept(noexcept(m_controller.seek(progress)))
+    {
+        m_controller.seek(progress);
+    }
+
+    constexpr virtual void reset() noexcept
+    {
+        m_controller.reset();
+    }
+
     [[nodiscard]] constexpr bool is_reversed() const noexcept
     {
         return m_is_reversed;
