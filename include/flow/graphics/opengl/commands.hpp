@@ -45,7 +45,7 @@ inline void draw_elements_instanced(std::size_t instance_count, primitive_type p
 
 template<std::ranges::contiguous_range Rc, std::ranges::contiguous_range Ro>
     requires std::same_as<std::ranges::range_value_t<Rc>, GLint>
-          && std::same_as<std::ranges::range_value_t<Ro>, GLsizei>
+        && std::same_as<std::ranges::range_value_t<Ro>, GLsizei>
 inline void multi_draw_arrays(primitive_type primitive, Rc&& counts, Ro&& offsets) noexcept
 {
     glMultiDrawArrays(static_cast<GLenum>(primitive),
@@ -78,6 +78,21 @@ inline void set_viewport(glm::uvec2 start, glm::uvec2 size) noexcept
 inline void set_polygon_mode(polygon_mode mode) noexcept
 {
     glPolygonMode(GL_FRONT_AND_BACK, static_cast<GLenum>(mode));
+}
+
+inline void set_blend_function(blend_mode src, blend_mode dst) noexcept
+{
+    glBlendFunc(static_cast<GLenum>(src), static_cast<GLenum>(dst));
+}
+
+inline void enable(render_option option) noexcept
+{
+    glEnable(static_cast<GLenum>(option));
+}
+
+inline void disable(render_option option) noexcept
+{
+    glDisable(static_cast<GLenum>(option));
 }
 
 } // namespace flow::gl
