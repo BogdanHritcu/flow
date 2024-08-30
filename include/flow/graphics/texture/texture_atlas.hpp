@@ -9,10 +9,7 @@
 #include <vector>
 
 #include "../../utility/istream_view.hpp"
-#include "../../utility/ostream_view.hpp"
-#include "../../utility/path_serialization.hpp"
 #include "../../utility/serialization.hpp"
-#include "../../utility/vector_serialization.hpp"
 #include "../opengl/texture.hpp"
 #include "image.hpp"
 
@@ -29,9 +26,10 @@ public:
 
     struct atlas_metadata
     {
-        image_metadata image_metadata;
-        fs::path image_path;
-        std::vector<texture_data_type> entries;
+        std::uint32_t width;
+        std::uint32_t height;
+        std::uint32_t channels;
+        std::uint32_t entry_count;
     };
 
 public:
@@ -50,12 +48,7 @@ public:
     bool load(const fs::path& path)
     {
         std::fstream file(path, std::ios::binary | std::ios::in);
-        if (!file)
-        {
-            return false;
-        }
-
-        return load(file);
+        return file && load(file);
     }
 
     bool load(istream_view in)
@@ -65,25 +58,77 @@ public:
             return false;
         }
 
-        image image{};
-        if (!image.load(m_metadata.image_path, image_format::rgba))
+        m_entries.resize(m_metadata.entry_count);
+        if (!in.deserialize(std::span{ m_entries }))
         {
             return false;
         }
-        m_metadata.image_metadata = image.metadata();
 
+        std::vector<std::uint8_t> image_data;
+        image_data.resize(m_metadata.width * m_metadata.height * m_metadata.channels);
+        if (!in.deserialize(std::span{ image_data }))
+        {
+            return false;
+        }
+
+        return create_texture(image_data, m_metadata.width, m_metadata.height);
+    }
+
+    [[nodiscard]] constexpr size_type size() const noexcept
+    {
+        return m_entries.size();
+    }
+
+    [[nodiscard]] constexpr bool empty() const noexcept
+    {
+        return m_entries.empty();
+    }
+
+    [[nodiscard]] constexpr size_type width() const noexcept
+    {
+        return m_metadata.width;
+    }
+
+    [[nodiscard]] constexpr size_type height() const noexcept
+    {
+        return m_metadata.height;
+    }
+
+    [[nodiscard]] constexpr size_type channels() const noexcept
+    {
+        return m_metadata.channels;
+    }
+
+    [[nodiscard]] constexpr std::span<const texture_data_type> entries() const noexcept
+    {
+        return m_entries;
+    }
+
+    [[nodiscard]] constexpr const texture_data_type* entry(size_type index) const noexcept
+    {
+        return index < m_entries.size() ? &m_entries[index] : nullptr;
+    }
+
+    [[nodiscard]] constexpr decltype(auto) texture_id() const noexcept
+    {
+        return m_texture.id();
+    }
+
+private:
+    bool create_texture(std::span<const std::uint8_t> image_data, std::uint32_t width, std::uint32_t height)
+    {
         if (!m_texture.create())
         {
             return false;
         }
 
-        m_texture.storage(1, gl::texture_format::rgba8, image.width(), image.height());
-        m_texture.sub_image(image.values(),
+        m_texture.storage(1, gl::texture_format::rgba8, width, height);
+        m_texture.sub_image(image_data,
                             0,
                             gl::pixel_format::rgba,
-                            gl::to_type_value<image::value_type>(),
-                            image.width(),
-                            image.height());
+                            gl::to_type_value<std::uint8_t>(),
+                            width,
+                            height);
 
         m_texture.set_filter(gl::texture_filter_direction::minifying, gl::texture_filter_mode::nearest);
         m_texture.set_filter(gl::texture_filter_direction::magnifying, gl::texture_filter_mode::nearest);
@@ -93,87 +138,10 @@ public:
         return true;
     }
 
-    bool save(const fs::path& path) const
-    {
-        std::fstream file(path, std::ios::binary | std::ios::out);
-        if (!file)
-        {
-            return false;
-        }
-
-        return save(file);
-    }
-
-    bool save(ostream_view out) const
-    {
-        return static_cast<bool>(out.serialize(m_metadata));
-    }
-
-    [[nodiscard]] constexpr size_type size() const noexcept
-    {
-        return m_metadata.entries.size();
-    }
-
-    [[nodiscard]] constexpr bool empty() const noexcept
-    {
-        return m_metadata.entries.empty();
-    }
-
-    [[nodiscard]] constexpr size_type width() const noexcept
-    {
-        return m_metadata.image_metadata.width;
-    }
-
-    [[nodiscard]] constexpr size_type height() const noexcept
-    {
-        return m_metadata.image_metadata.height;
-    }
-
-    [[nodiscard]] constexpr size_type channels() const noexcept
-    {
-        return m_metadata.image_metadata.channels;
-    }
-
-    [[nodiscard]] constexpr std::span<const texture_data_type> entries() const noexcept
-    {
-        return m_metadata.entries;
-    }
-
-    [[nodiscard]] constexpr const texture_data_type* entry(size_type index) const noexcept
-    {
-        return index < m_metadata.entries.size() ? &m_metadata.entries[index] : nullptr;
-    }
-
-    void bind() const noexcept
-    {
-        m_texture.bind();
-    }
-
 private:
     gl::texture2D m_texture{};
-    atlas_metadata m_metadata;
-};
-
-template<typename TextureDataT>
-struct deserializer<typename basic_texture_atlas<TextureDataT>::atlas_metadata<TextureDataT>>
-{
-    void operator()(istream_view in, typename basic_texture_atlas<TextureDataT>::atlas_metadata& m) const
-    {
-        in.deserialize(m.image_path)
-                .deserialize(m.image_metadata)
-                .deserialize(m.entries);
-    }
-};
-
-template<typename TextureDataT>
-struct serializer<typename basic_texture_atlas<TextureDataT>::atlas_metadata<TextureDataT>>
-{
-    void operator()(ostream_view out, const typename basic_texture_atlas<TextureDataT>::atlas_metadata& m) const
-    {
-        out.serialize(m.image_path)
-                .serialize(m.image_metadata)
-                .serialize(m.entries);
-    }
+    atlas_metadata m_metadata{};
+    std::vector<texture_data_type> m_entries{};
 };
 
 } // namespace flow
