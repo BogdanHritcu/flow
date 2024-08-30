@@ -32,7 +32,7 @@ constexpr image_format auto_image_format = static_cast<image_format>(0);
 struct image_metadata
 {
     using value_type = std::uint8_t;
-    using size_type = std::size_t;
+    using size_type = std::uint32_t;
 
     size_type width;
     size_type height;
@@ -63,6 +63,37 @@ public:
         load(path, force_format, load_flipped);
     }
 
+    bool load(std::span<const std::uint8_t> image_data, image_format force_format = auto_image_format, bool load_flipped = true) noexcept
+    {
+        pointer_type data = nullptr;
+        int width{};
+        int height{};
+        int channels{};
+
+        stbi_set_flip_vertically_on_load(static_cast<int>(load_flipped));
+
+        auto forced_channels = static_cast<int>(force_format);
+        data = stbi_load_from_memory(static_cast<const stbi_uc*>(image_data.data()),
+                                     static_cast<int>(image_data.size_bytes()),
+                                     &width,
+                                     &height,
+                                     &channels,
+                                     forced_channels);
+
+        if (data)
+        {
+            m_metadata = {
+                .width = static_cast<size_type>(width),
+                .height = static_cast<size_type>(height),
+                .channels = static_cast<size_type>(forced_channels)
+            };
+
+            m_handle.reset(data);
+        }
+
+        return data != nullptr;
+    }
+
     bool load(const fs::path& path, image_format force_format = auto_image_format, bool load_flipped = true) noexcept
     {
         static_assert(std::same_as<pointer_type, stbi_uc*>);
@@ -79,14 +110,15 @@ public:
 
         stbi_set_flip_vertically_on_load(static_cast<int>(load_flipped));
 
-        data = stbi_load(path.string().c_str(), &width, &height, &channels, static_cast<int>(force_format));
+        auto forced_channels = static_cast<int>(force_format);
+        data = stbi_load(path.string().c_str(), &width, &height, &channels, forced_channels);
 
         if (data)
         {
             m_metadata = {
                 .width = static_cast<size_type>(width),
                 .height = static_cast<size_type>(height),
-                .channels = static_cast<size_type>(channels)
+                .channels = static_cast<size_type>(forced_channels)
             };
 
             m_handle.reset(data);
