@@ -1,6 +1,57 @@
 #pragma once
 
+#include <concepts>
+#include <type_traits>
+
 namespace flow {
+
+namespace concepts {
+
+    namespace detail {
+
+        template<typename T>
+        std::decay_t<T> decay(T&& t);
+
+    } // namespace detail
+
+    template<typename T, typename U>
+    concept vector_has_x = requires(T v) {
+        // clang-format off
+        { detail::decay(v.x) } -> std::same_as<U>;
+        // clang-format on
+    };
+
+    template<typename T, typename U>
+    concept vector_has_y = requires(T v) {
+        // clang-format off
+        { detail::decay(v.y) } -> std::same_as<U>;
+        // clang-format on
+    };
+
+    template<typename T, typename U>
+    concept vector_has_z = requires(T v) {
+        // clang-format off
+        { detail::decay(v.z) } -> std::same_as<U>;
+        // clang-format on
+    };
+
+    template<typename T, typename U>
+    concept vector_has_w = requires(T v) {
+        // clang-format off
+        { detail::decay(v.w) } -> std::same_as<U>;
+        // clang-format on
+    };
+
+    template<typename T, typename U>
+    concept vector_least2 = vector_has_x<T, U> && vector_has_y<T, U>;
+
+    template<typename T, typename U>
+    concept vector_least3 = vector_least2<T, U> && vector_has_z<T, U>;
+
+    template<typename T, typename U>
+    concept vector_least4 = vector_least3<T, U> && vector_has_w<T, U>;
+
+} // namespace concepts
 
 template<typename T>
 struct basic_vec2
