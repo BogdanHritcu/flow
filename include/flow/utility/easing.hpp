@@ -20,6 +20,13 @@ template<std::floating_point T = float>
 }
 
 template<std::floating_point T = float>
+[[nodiscard]] constexpr T ease_in_out_quadratic(T t) noexcept
+{
+    return t < T{ 0.5 } ? T{ 2 } * t * t
+                        : T{ 1 } - (T{ -2 } * t + T{ 2 }) * (T{ -2 } * t + T{ 2 }) * T{ 0.5 };
+}
+
+template<std::floating_point T = float>
 [[nodiscard]] constexpr T ease_in_cubic(T t) noexcept
 {
     return t * t * t;
@@ -104,6 +111,35 @@ template<std::floating_point T = float>
 [[nodiscard]] constexpr T ease_in_bounce(T t) noexcept
 {
     return T{ 1 } - ease_out_bounce(T{ 1 } - t);
+}
+
+template<std::floating_point T = float>
+[[nodiscard]] constexpr T ease_out_exponential(T t) noexcept
+{
+    return T{ 1 } - static_cast<T>(t != T{ 1 }) * std::pow(T{ 2 }, T{ -10 } * t);
+}
+
+template<std::floating_point T = float>
+[[nodiscard]] constexpr T ease_in_exponential(T t) noexcept
+{
+    return static_cast<T>(t != T{ 0 }) * std::pow(T{ 2 }, T{ 10 } * t - T{ 10 });
+}
+
+template<std::floating_point T = float>
+[[nodiscard]] constexpr T ease_out_back(T t) noexcept
+{
+    static constexpr auto c = T{ 1.70158 };
+    auto u = t - T{ 1 };
+
+    return T{ 1 } + u * u * (c * (u + 1) + u);
+}
+
+template<std::floating_point T = float>
+[[nodiscard]] constexpr T ease_in_back(T t) noexcept
+{
+    static constexpr auto c = T{ 1.70158 };
+
+    return t * t * (c * (t - T{ 1 }) + t);
 }
 
 } // namespace flow
