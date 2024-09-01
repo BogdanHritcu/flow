@@ -23,8 +23,8 @@ public:
     {
     }
 
-    void set_points(const concepts::vector_least2<value_type> auto& b0,
-                    const concepts::vector_least2<value_type> auto& b1) noexcept
+    constexpr void set_points(const concepts::vector_least2<value_type> auto& b0,
+                              const concepts::vector_least2<value_type> auto& b1) noexcept
     {
         m_b0 = { b0.x, b0.y };
         m_b1 = { b1.x, b1.y };
@@ -64,7 +64,7 @@ public:
     {
     }
 
-    void set_points(const vec2_type b0, const vec2_type b1, const vec2_type b2) noexcept
+    constexpr void set_points(const vec2_type b0, const vec2_type b1, const vec2_type b2) noexcept
     {
         m_b0 = b0;
         m_b1 = b1;
@@ -109,7 +109,7 @@ public:
     {
     }
 
-    void set_points(const vec2_type b0, const vec2_type b1, const vec2_type b2, const vec2_type b3) noexcept
+    constexpr void set_points(const vec2_type b0, const vec2_type b1, const vec2_type b2, const vec2_type b3) noexcept
     {
         m_b0 = b0;
         m_b1 = b1;
