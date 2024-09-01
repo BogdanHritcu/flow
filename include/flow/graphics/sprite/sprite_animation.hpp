@@ -3,16 +3,13 @@
 #include <concepts>
 #include <filesystem>
 #include <fstream>
-#include <vector>
 
 #include <glm/vec2.hpp>
+#include <glm/vec4.hpp>
 
 #include "../../utility/animation.hpp"
-#include "../../utility/istream_view.hpp"
-#include "../../utility/ostream_view.hpp"
-#include "../../utility/serialization.hpp"
 #include "../../utility/time.hpp"
-#include "../texture/texture_atlas.hpp"
+#include "sprite_animation_atlas.hpp"
 
 namespace flow {
 
@@ -21,80 +18,75 @@ namespace fs = std::filesystem;
 class sprite_animation : public animation
 {
 public:
-    using size_type = image::size_type;
+    using size_type = sprite_animation_atlas::size_type;
+    using frame_data = sprite_animation_atlas::frame_data;
 
-    struct frame_data
+    struct state
     {
-        std::uint32_t duration; // ms
-        glm::vec2 norm_tex_bottom_left;
-        glm::vec2 norm_tex_top_right;
+        glm::vec4 color;
+        glm::vec2 position;
+        glm::vec2 size;
     };
-
-private:
-    using texture_atlas_type = basic_texture_atlas<frame_data>;
 
 public:
     constexpr sprite_animation() = default;
     constexpr ~sprite_animation() noexcept override = default;
 
-    sprite_animation(const fs::path& path)
+    constexpr sprite_animation(const sprite_animation_atlas* atlas_ptr) noexcept
     {
-        load(path);
+        set_atlas(atlas_ptr);
     }
 
-    bool load(const fs::path& path)
+    constexpr sprite_animation(const sprite_animation_atlas* atlas_ptr, bool reversed, bool loop) noexcept
+        : animation(flow::duration{}, reversed, loop)
     {
-        std::fstream file(path, std::ios::binary | std::ios::in);
-        return file && load(file);
+        set_atlas(atlas_ptr);
     }
 
-    bool load(istream_view in)
+    constexpr void set_atlas(const sprite_animation_atlas* atlas_ptr) noexcept
     {
-        if (!m_texture_atlas.load(in))
+        m_atlas_ptr = atlas_ptr;
+
+        if (m_atlas_ptr && m_atlas_ptr->frame_count() > 0)
         {
-            return false;
+            set_duration(std::chrono::milliseconds{ m_atlas_ptr->frames().back().end });
         }
-
-        flow::duration duration{};
-        for (const auto& e : m_texture_atlas.entries())
-        {
-            duration += std::chrono::milliseconds(e.duration);
-        }
-        set_duration(duration);
-
-        return true;
     }
 
-    constexpr void reset() noexcept override
+    [[nodiscard]] constexpr void set_state(const state& state) noexcept
     {
-        animation::reset();
-        m_current_frame_index = 0;
-        m_prev_frame_end = {};
+        m_state = state;
+    }
+
+    constexpr void restart() noexcept override
+    {
+        animation::restart();
+        m_frame_index = is_reversed() && m_atlas_ptr && m_atlas_ptr->frame_count() > 0 ? frame_count() - 1 : 0;
     }
 
     [[nodiscard]] constexpr const frame_data* current_frame() const noexcept
     {
-        return frame(m_current_frame_index);
+        return frame(m_frame_index);
     }
 
     [[nodiscard]] constexpr const frame_data* frame(size_type index) const noexcept
     {
-        return m_texture_atlas.entry(index);
-    }
-
-    [[nodiscard]] constexpr std::span<const frame_data> frames() const noexcept
-    {
-        return m_texture_atlas.entries();
+        return m_atlas_ptr ? m_atlas_ptr->frame(index) : nullptr;
     }
 
     [[nodiscard]] constexpr size_type frame_count() const noexcept
     {
-        return m_texture_atlas.size();
+        return m_atlas_ptr ? m_atlas_ptr->frame_count() : 0;
     }
 
-    [[nodiscard]] constexpr const texture_atlas_type& texture_atlas() const noexcept
+    [[nodiscard]] constexpr decltype(auto) texture_atlas() const noexcept
     {
-        return m_texture_atlas;
+        return m_atlas_ptr ? &m_atlas_ptr->texture_atlas() : nullptr;
+    }
+
+    [[nodiscard]] constexpr const state& get_state() const noexcept
+    {
+        return m_state;
     }
 
 protected:
@@ -102,18 +94,26 @@ protected:
     {
         flow::duration t = progress();
 
-        const auto* frame_ptr = frame(m_current_frame_index);
-        while (frame_ptr && t >= m_prev_frame_end + std::chrono::milliseconds(frame_ptr->duration))
+        const auto* frame_ptr = frame(m_frame_index);
+        auto sign = 1 - 2 * static_cast<int>(is_reversed());
+        auto count = frame_count();
+
+        while (!has_finished()
+               && frame_ptr
+               && (t < std::chrono::milliseconds{ frame_ptr->begin }
+                   || t >= std::chrono::milliseconds{ frame_ptr->end }))
         {
-            m_prev_frame_end += std::chrono::milliseconds(frame_ptr->duration);
-            frame_ptr = frame(++m_current_frame_index);
+            m_frame_index = (count + m_frame_index + sign) % count;
+            frame_ptr = frame(m_frame_index);
         }
     }
 
+protected:
+    state m_state{};
+
 private:
-    texture_atlas_type m_texture_atlas{};
-    size_type m_current_frame_index = 0;
-    flow::duration m_prev_frame_end{};
+    const sprite_animation_atlas* m_atlas_ptr{};
+    size_type m_frame_index = 0;
 };
 
 } // namespace flow

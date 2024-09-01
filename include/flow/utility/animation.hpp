@@ -11,21 +11,25 @@ class animation
 public:
     constexpr animation() = default;
 
-    constexpr animation(flow::duration duration, bool reversed) noexcept
-        : m_controller{ duration }
-        , m_is_reversed{ reversed }
+    constexpr animation(flow::duration duration) noexcept
+        : m_controller(duration)
+    {}
+
+    constexpr animation(flow::duration duration, bool reversed, bool loop) noexcept
+        : m_controller(duration, reversed, loop)
     {}
 
     constexpr virtual ~animation() = default;
 
     constexpr void advance(flow::duration dt) noexcept(noexcept(m_controller.advance(dt)))
     {
-        static_assert(std::signed_integral<flow::duration::rep>);
-
-        auto sign = 1 - 2 * static_cast<int>(m_is_reversed);
-        m_controller.advance(sign * dt);
-
+        m_controller.advance(dt);
         update();
+    }
+
+    constexpr void seek(flow::duration progress) noexcept(noexcept(m_controller.seek(progress)))
+    {
+        m_controller.seek(progress);
     }
 
     constexpr void set_duration(flow::duration duration) noexcept
@@ -35,22 +39,27 @@ public:
 
     constexpr void set_reversed(bool value) noexcept
     {
-        m_is_reversed = value;
+        m_controller.set_reversed(value);
     }
 
-    constexpr void seek(flow::duration progress) noexcept(noexcept(m_controller.seek(progress)))
+    constexpr void set_loop(bool value) noexcept
     {
-        m_controller.seek(progress);
+        m_controller.set_loop(value);
     }
 
-    constexpr virtual void reset() noexcept
+    constexpr virtual void restart() noexcept
     {
-        m_controller.reset();
+        m_controller.restart();
     }
 
     [[nodiscard]] constexpr bool is_reversed() const noexcept
     {
-        return m_is_reversed;
+        return m_controller.is_reversed();
+    }
+
+    [[nodiscard]] constexpr bool is_loop() const noexcept
+    {
+        return m_controller.is_loop();
     }
 
     [[nodiscard]] constexpr const flow::duration& duration() const noexcept
@@ -63,16 +72,15 @@ public:
         return m_controller.progress();
     }
 
+    [[nodiscard]] constexpr bool has_finished() const noexcept(noexcept(m_controller.has_finished()))
+    {
+        return m_controller.has_finished();
+    }
+
     template<std::floating_point T = float>
     [[nodiscard]] constexpr T normalized_progress() const noexcept(noexcept(m_controller.normalized_progress<T>()))
     {
         return m_controller.normalized_progress<T>();
-    }
-
-    [[nodiscard]] constexpr bool has_finished() const noexcept
-    {
-        return (!m_is_reversed && m_controller.is_at_end())
-                || (m_is_reversed && m_controller.is_at_start());
     }
 
 protected:
@@ -80,7 +88,6 @@ protected:
 
 private:
     flow::animation_controller m_controller{};
-    bool m_is_reversed = false;
 };
 
 } // namespace flow

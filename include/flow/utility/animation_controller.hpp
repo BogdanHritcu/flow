@@ -19,20 +19,37 @@ public:
         : m_duration{ duration }
     {}
 
-    constexpr void advance(flow::duration dt) noexcept(
-            noexcept(m_t + flow::duration{}) && noexcept(m_t.time_since_epoch()) && noexcept(seek(flow::duration{})))
+    constexpr animation_controller(flow::duration duration, bool reversed, bool loop) noexcept
+        : m_duration{ duration }
+        , m_is_reversed{ reversed }
+        , m_is_loop{ loop }
+    {}
+
+    constexpr void advance(flow::duration dt) noexcept(noexcept(m_t + dt - start_time_point))
     {
-        seek((m_t + dt).time_since_epoch());
+        static_assert(std::signed_integral<flow::duration::rep>);
+
+        auto sign = 1 - 2 * static_cast<int>(m_is_reversed);
+        auto duration_progress = m_t + sign * dt - start_time_point;
+
+        if (duration_progress < flow::duration{ 0 })
+        {
+            duration_progress = m_is_loop ? m_duration + duration_progress % m_duration : flow::duration{ 0 };
+        }
+        else if (duration_progress > m_duration)
+        {
+            duration_progress = m_is_loop ? duration_progress % m_duration : m_duration;
+        }
+
+        m_t = start_time_point + duration_progress;
     }
 
-    constexpr void forward(flow::duration dt) noexcept(
-            noexcept(m_t + flow::duration{}) && noexcept(m_t.time_since_epoch()) && noexcept(seek(flow::duration{})))
+    constexpr void forward(flow::duration dt) noexcept(noexcept(advance(dt)))
     {
         advance(dt);
     }
 
-    constexpr void backward(flow::duration dt) noexcept(
-            noexcept(m_t - flow::duration{}) && noexcept(m_t.time_since_epoch()) && noexcept(seek(flow::duration{})))
+    constexpr void backward(flow::duration dt) noexcept(noexcept(advance(-dt)))
     {
         static_assert(std::signed_integral<flow::duration::rep>);
 
@@ -53,14 +70,39 @@ public:
         m_duration = duration;
     }
 
-    constexpr void reset() noexcept
+    constexpr void set_reversed(bool value) noexcept
     {
-        m_t = start_time_point;
+        m_is_reversed = value;
+    }
+
+    constexpr void set_loop(bool value) noexcept
+    {
+        m_is_loop = value;
+    }
+
+    constexpr void restart() noexcept
+    {
+        m_t = m_is_reversed ? start_time_point + m_duration : start_time_point;
     }
 
     [[nodiscard]] constexpr const flow::duration& duration() const noexcept
     {
         return m_duration;
+    }
+
+    [[nodiscard]] constexpr bool is_reversed() const noexcept
+    {
+        return m_is_reversed;
+    }
+
+    [[nodiscard]] constexpr bool is_loop() const noexcept
+    {
+        return m_is_loop;
+    }
+
+    [[nodiscard]] constexpr bool has_finished() const noexcept(noexcept(m_t == start_time_point + m_duration))
+    {
+        return !m_is_loop && (m_is_reversed && m_t == start_time_point || !m_is_reversed && m_t == start_time_point + m_duration);
     }
 
     [[nodiscard]] constexpr flow::duration progress() const noexcept(noexcept(m_t - start_time_point))
@@ -79,15 +121,16 @@ public:
         return m_t == start_time_point;
     }
 
-    [[nodiscard]] constexpr bool is_at_end() const noexcept(
-            noexcept(m_t.time_since_epoch()) && noexcept(m_t.time_since_epoch() == m_duration))
+    [[nodiscard]] constexpr bool is_at_end() const noexcept(noexcept(m_t - start_time_point == m_duration))
     {
-        return m_t.time_since_epoch() == m_duration;
+        return m_t - start_time_point == m_duration;
     }
 
 private:
     flow::time_point m_t = start_time_point;
     flow::duration m_duration{};
+    bool m_is_reversed = false;
+    bool m_is_loop = false;
 };
 
 } // namespace flow
