@@ -72,9 +72,24 @@ public:
         return a.m_ptr == b.m_ptr;
     }
 
+    [[nodiscard]] friend constexpr bool operator==(const invariant_ptr& a, pointer b) noexcept
+    {
+        return a.m_ptr == b;
+    }
+
+    [[nodiscard]] friend constexpr bool operator==(pointer a, const invariant_ptr& b) noexcept
+    {
+        return a == b.m_ptr;
+    }
+
     [[nodiscard]] friend constexpr bool operator==(const invariant_ptr& a, std::nullptr_t) noexcept
     {
         return a.m_ptr == nullptr;
+    }
+
+    [[nodiscard]] friend constexpr bool operator==(std::nullptr_t, const invariant_ptr& b) noexcept
+    {
+        return nullptr == b.m_ptr;
     }
 
 private:
