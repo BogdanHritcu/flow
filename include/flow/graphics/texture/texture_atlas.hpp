@@ -8,6 +8,8 @@
 #include <utility>
 #include <vector>
 
+#include <glm/vec2.hpp>
+
 #include "../../utility/istream_view.hpp"
 #include "../../utility/serialization.hpp"
 #include "../opengl/texture.hpp"
@@ -143,5 +145,13 @@ private:
     atlas_metadata m_metadata{};
     std::vector<texture_data_type> m_entries{};
 };
+
+struct tileset_entry
+{
+    glm::vec2 norm_tex_bottom_left;
+    glm::vec2 norm_tex_top_right;
+};
+
+using tileset_atlas = basic_texture_atlas<tileset_entry>;
 
 } // namespace flow
