@@ -25,7 +25,8 @@
 #include "../texture/texture_atlas.hpp"
 
 namespace flow {
-class sprite_renderer
+
+class sprite_atlas_renderer
 {
 private:
     static constexpr std::string_view vertex_shader_source = R"(
@@ -414,4 +415,5 @@ private:
 
     renderer_state<instance> m_renderer{};
 };
+
 } // namespace flow
