@@ -102,7 +102,7 @@ public:
 
     [[nodiscard]] constexpr bool has_finished() const noexcept(noexcept(m_t == start_time_point + m_duration))
     {
-        return !m_is_loop && (m_is_reversed && m_t == start_time_point || !m_is_reversed && m_t == start_time_point + m_duration);
+        return !m_is_loop && is_at_end_r();
     }
 
     [[nodiscard]] constexpr flow::duration progress() const noexcept(noexcept(m_t - start_time_point))
@@ -110,10 +110,21 @@ public:
         return m_t - start_time_point;
     }
 
+    [[nodiscard]] constexpr flow::duration progress_r() const noexcept(noexcept(m_t - start_time_point))
+    {
+        return m_is_reversed ? m_duration - (m_t - start_time_point) : m_t - start_time_point;
+    }
+
     template<std::floating_point T = float>
     [[nodiscard]] constexpr T normalized_progress() const noexcept(noexcept(progress()) && noexcept(m_duration.count()))
     {
         return static_cast<T>(progress().count()) / static_cast<T>(m_duration.count());
+    }
+
+    template<std::floating_point T = float>
+    [[nodiscard]] constexpr T normalized_progress_r() const noexcept(noexcept(progress()) && noexcept(m_duration.count()))
+    {
+        return static_cast<T>(progress_r().count()) / static_cast<T>(m_duration.count());
     }
 
     [[nodiscard]] constexpr bool is_at_start() const noexcept(noexcept(m_t == start_time_point))
@@ -124,6 +135,16 @@ public:
     [[nodiscard]] constexpr bool is_at_end() const noexcept(noexcept(m_t - start_time_point == m_duration))
     {
         return m_t - start_time_point == m_duration;
+    }
+
+    [[nodiscard]] constexpr bool is_at_start_r() const noexcept(noexcept(m_t == start_time_point))
+    {
+        return (!m_is_reversed && is_at_start()) || (m_is_reversed && is_at_end());
+    }
+
+    [[nodiscard]] constexpr bool is_at_end_r() const noexcept(noexcept(m_t - start_time_point == m_duration))
+    {
+        return (m_is_reversed && is_at_start()) || (!m_is_reversed && is_at_end());
     }
 
 private:

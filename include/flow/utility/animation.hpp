@@ -72,15 +72,15 @@ public:
         return m_controller.progress();
     }
 
-    [[nodiscard]] constexpr bool has_finished() const noexcept(noexcept(m_controller.has_finished()))
-    {
-        return m_controller.has_finished();
-    }
-
     template<std::floating_point T = float>
     [[nodiscard]] constexpr T normalized_progress() const noexcept(noexcept(m_controller.normalized_progress<T>()))
     {
         return m_controller.normalized_progress<T>();
+    }
+
+    [[nodiscard]] constexpr bool has_finished() const noexcept(noexcept(m_controller.has_finished()))
+    {
+        return m_controller.has_finished();
     }
 
 protected:
